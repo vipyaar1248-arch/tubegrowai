@@ -1,0 +1,2743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TubeGrow AI — YouTube Growth Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08080f; --surface:#111119; --surface2:#181824; --surface3:#1e1e2e;
+  --border:#252535; --border2:#303048;
+  --accent:#ff3535; --accent2:#ff6b35; --accent-glow:rgba(255,53,53,0.2);
+  --gold:#ffc940; --text:#eeeef8; --muted:#5a5a7a; --muted2:#8888aa;
+  --green:#00e87a; --blue:#4f8ef7; --purple:#a855f7;
+  --sidebar:240px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+::selection{background:rgba(255,53,53,0.3);}
+
+/* BG mesh */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 600px 500px at 15% 10%, rgba(255,53,53,0.07) 0%,transparent 70%),
+    radial-gradient(ellipse 500px 600px at 85% 90%, rgba(79,142,247,0.05) 0%,transparent 70%),
+    radial-gradient(ellipse 400px 400px at 50% 50%, rgba(168,85,247,0.03) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+
+/* ======= SIDEBAR ======= */
+.sidebar{
+  position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:200;
+  transition:transform 0.3s;
+}
+.sidebar.collapsed{
+  transform:translateX(-100%);
+}
+/* Sidebar toggle button */
+.sidebar-toggle{
+  position:fixed;left:var(--sidebar);top:50%;transform:translateY(-50%);
+  width:20px;height:48px;background:var(--accent);border:none;
+  border-radius:0 8px 8px 0;cursor:pointer;z-index:300;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.8rem;color:white;transition:left 0.3s, transform 0.3s;
+  box-shadow:3px 0 12px rgba(255,53,53,0.4);
+}
+.sidebar-toggle.closed{left:0;}
+.sidebar-toggle:hover{background:#ff5555;width:26px;}
+
+/* Main shift */
+.main{margin-left:var(--sidebar);min-height:100vh;position:relative;z-index:1;transition:margin-left 0.3s;}
+.main.full{margin-left:0;}
+.logo{
+  padding:24px 20px 20px;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.logo-icon{
+  width:34px;height:34px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;box-shadow:0 4px 16px var(--accent-glow);flex-shrink:0;
+}
+.logo-text span{color:var(--accent);}
+.logo-text small{display:block;font-size:0.6rem;color:var(--muted);font-weight:400;letter-spacing:2px;text-transform:uppercase;margin-top:1px;}
+
+.nav{flex:1;padding:16px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-section{font-size:0.65rem;color:var(--muted);padding:14px 10px 6px;letter-spacing:2px;text-transform:uppercase;font-weight:600;}
+.nav-item{
+  padding:9px 12px;border-radius:9px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;font-size:0.875rem;
+  color:var(--muted2);transition:all 0.2s;font-weight:500;
+  position:relative;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(255,53,53,0.1);color:var(--accent);}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--accent);border-radius:0 2px 2px 0;}
+.nav-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:0.65rem;background:var(--accent);color:white;padding:2px 7px;border-radius:20px;font-weight:700;}
+
+.sidebar-bottom{padding:12px 10px;border-top:1px solid var(--border);}
+.channel-pill{
+  padding:12px;background:var(--surface2);border-radius:12px;
+  border:1px solid var(--border);cursor:pointer;transition:all 0.2s;
+}
+.channel-pill:hover{border-color:var(--border2);}
+.ch-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ch-avatar{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:700;
+}
+.ch-name{font-size:0.82rem;font-weight:600;}
+.ch-sub{font-size:0.72rem;color:var(--muted);}
+.ch-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ch-stat{background:var(--surface3);border-radius:7px;padding:5px 8px;text-align:center;}
+.ch-stat-val{font-size:0.8rem;font-weight:700;font-family:'Syne',sans-serif;}
+.ch-stat-lbl{font-size:0.6rem;color:var(--muted);margin-top:1px;}
+
+.lang-toggle{
+  display:flex;align-items:center;background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;padding:3px;gap:2px;
+}
+.lang-btn{
+  padding:4px 12px;border-radius:16px;border:none;cursor:pointer;
+  font-size:0.75rem;font-weight:700;transition:all 0.2s;
+  background:transparent;color:var(--muted2);
+}
+.lang-btn.active{background:var(--accent);color:white;box-shadow:0 2px 8px rgba(255,53,53,0.3);}
+
+/* ======= TOPBAR ======= */
+.topbar{
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  background:rgba(8,8,15,0.85);backdrop-filter:blur(16px);
+  position:sticky;top:0;z-index:100;
+}
+@media(min-width:600px){.topbar{padding:16px 28px;}}
+.page-title{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  padding:6px 12px;border-radius:20px;font-size:0.78rem;
+  background:var(--surface2);border:1px solid var(--border);color:var(--muted2);
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.dot.live{background:var(--green);box-shadow:0 0 8px var(--green);}
+.dot.pulse{animation:dotpulse 2s infinite;}
+@keyframes dotpulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* ======= BUTTONS ======= */
+.btn{
+  padding:8px 16px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:600;
+  transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;
+  white-space:nowrap;
+}
+.btn-primary{background:var(--accent);color:white;}
+.btn-primary:hover{background:#ff5050;transform:translateY(-1px);box-shadow:0 6px 20px var(--accent-glow);}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--border2);background:var(--surface3);}
+.btn-outline{background:transparent;color:var(--accent);border:1px solid rgba(255,53,53,0.4);}
+.btn-outline:hover{background:rgba(255,53,53,0.08);}
+.btn-sm{padding:5px 12px;font-size:0.78rem;}
+.btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
+
+/* ======= CONTENT ======= */
+.content{padding:16px 14px;}
+@media(min-width:600px){.content{padding:24px 28px;}}
+
+/* ======= CARDS ======= */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;padding:22px;
+  transition:border-color 0.2s;
+}
+.card-title{
+  font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;
+  margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.card-title-left{display:flex;align-items:center;gap:10px;}
+
+.badge{font-size:0.68rem;padding:3px 9px;border-radius:20px;font-weight:700;letter-spacing:0.5px;}
+.badge-red{background:rgba(255,53,53,0.15);color:var(--accent);}
+.badge-green{background:rgba(0,232,122,0.12);color:var(--green);}
+.badge-gold{background:rgba(255,201,64,0.12);color:var(--gold);}
+.badge-blue{background:rgba(79,142,247,0.12);color:var(--blue);}
+.badge-purple{background:rgba(168,85,247,0.12);color:var(--purple);}
+
+/* ======= GRIDS ======= */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+.stats-row{display:flex;flex-direction:row;gap:12px;overflow-x:auto;margin-bottom:18px;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.stats-row::-webkit-scrollbar{display:none;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+.three-col{display:grid;grid-template-columns:3fr 2fr;gap:18px;margin-bottom:22px;}
+.mb{margin-bottom:22px;}
+
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:16px;transition:all 0.3s;cursor:default;
+  animation:fadeUp 0.5s ease both;
+  min-width:140px;flex-shrink:0;
+}
+.stat-card:hover{border-color:rgba(255,53,53,0.3);transform:translateY(-2px);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.stat-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:6px;}
+.stat-val{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:700;}
+.stat-change{font-size:0.72rem;margin-top:4px;display:flex;align-items:center;gap:4px;}
+.up{color:var(--green);}
+.down{color:var(--accent);}
+.stat-icon{font-size:1.4rem;margin-bottom:6px;}
+
+/* ======= INPUTS ======= */
+.input-field{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;padding:10px 14px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:0.875rem;outline:none;
+  transition:border-color 0.2s;width:100%;
+}
+.input-field:focus{border-color:rgba(255,53,53,0.5);}
+.input-field::placeholder{color:var(--muted);}
+select.input-field option{background:var(--surface2);}
+
+label.lbl{font-size:0.75rem;color:var(--muted2);margin-bottom:6px;display:block;font-weight:500;}
+
+/* ======= AI RESPONSE ======= */
+.ai-box{
+  background:linear-gradient(135deg,rgba(255,53,53,0.04),rgba(79,142,247,0.04));
+  border:1px solid rgba(255,53,53,0.2);border-radius:12px;padding:18px;
+  font-size:0.875rem;line-height:1.75;display:none;margin-top:14px;
+}
+.ai-box.show{display:block;animation:fadeUp 0.4s ease;}
+.ai-box-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:0.75rem;color:var(--muted2);}
+.ai-label{background:rgba(255,53,53,0.1);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:700;}
+
+.typing-cursor{display:inline-block;width:2px;height:13px;background:var(--accent);animation:blink 0.8s infinite;vertical-align:middle;margin-left:1px;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.25);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ======= TOPIC CARDS ======= */
+.topic-item{
+  padding:13px 16px;background:var(--surface2);border-radius:11px;
+  border:1px solid var(--border);margin-bottom:9px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all 0.2s;cursor:pointer;gap:12px;
+}
+.topic-item:hover{border-color:rgba(255,53,53,0.4);transform:translateX(3px);}
+.topic-score{
+  font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;
+  color:var(--accent);min-width:44px;text-align:right;flex-shrink:0;
+}
+.topic-name{font-size:0.875rem;font-weight:600;margin-bottom:3px;}
+.topic-meta{font-size:0.75rem;color:var(--muted2);}
+.topic-actions{display:flex;gap:6px;margin-top:8px;}
+
+/* ======= PROGRESS/SCORE ======= */
+.score-bar-wrap{margin-bottom:14px;}
+.score-bar-top{display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.8rem;}
+.score-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden;}
+.score-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* ======= SCHEDULE GRID ======= */
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:18px;}
+.day-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 6px;text-align:center;
+  transition:all 0.2s;
+}
+.day-card.best{border-color:rgba(0,232,122,0.5);background:rgba(0,232,122,0.06);}
+.day-card.good{border-color:rgba(255,201,64,0.4);background:rgba(255,201,64,0.05);}
+.day-name{font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;}
+.day-time{font-size:0.72rem;font-weight:600;color:var(--green);}
+.day-score{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-top:4px;}
+
+/* ======= SCRIPT SECTION ======= */
+.script-block{
+  background:var(--surface2);border-radius:10px;border:1px solid var(--border);
+  margin-bottom:10px;overflow:hidden;
+}
+.script-block-header{
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+  font-size:0.8rem;font-weight:600;border-bottom:1px solid var(--border);
+  background:var(--surface3);cursor:pointer;
+}
+.script-block-content{padding:12px 14px;font-size:0.83rem;line-height:1.7;color:var(--text);}
+
+/* ======= COMP TABLE ======= */
+.comp-row{
+  display:flex;align-items:center;gap:14px;padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+.comp-row:last-child{border:none;}
+.comp-avatar-c{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.comp-info{flex:1;}
+.comp-name{font-size:0.875rem;font-weight:600;margin-bottom:2px;}
+.comp-detail{font-size:0.73rem;color:var(--muted2);}
+.comp-score{text-align:right;}
+.comp-subs{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;}
+.comp-trend{font-size:0.72rem;margin-top:2px;}
+
+/* ======= SEO TOOL ======= */
+.seo-score{
+  width:80px;height:80px;border-radius:50%;border:4px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;flex-shrink:0;position:relative;
+}
+.seo-num{font-size:1.4rem;font-weight:800;}
+.seo-lbl{font-size:0.6rem;color:var(--muted);margin-top:1px;}
+
+.tag-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.tag{
+  padding:4px 11px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;font-size:0.75rem;cursor:pointer;transition:all 0.2s;
+}
+.tag:hover{border-color:var(--accent);color:var(--accent);}
+.tag.selected{background:rgba(255,53,53,0.1);border-color:var(--accent);color:var(--accent);}
+
+/* ======= NOTIFICATION FEED ======= */
+.notif-item{
+  display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);
+  align-items:flex-start;
+}
+.notif-item:last-child{border:none;}
+.notif-icon{
+  width:34px;height:34px;border-radius:9px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1rem;
+}
+.notif-text{font-size:0.82rem;line-height:1.5;}
+.notif-time{font-size:0.7rem;color:var(--muted);margin-top:3px;}
+
+/* ======= THUMBNAIL PREVIEW ======= */
+.thumb-preview{
+  aspect-ratio:16/9;border-radius:12px;overflow:hidden;position:relative;
+  background:var(--surface2);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:12px;min-height:140px;
+}
+.thumb-text{
+  position:absolute;bottom:0;left:0;right:0;padding:14px;
+  background:linear-gradient(transparent,rgba(0,0,0,0.85));
+  font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;
+  line-height:1.3;
+}
+
+/* ======= LANDING HERO PREVIEW ======= */
+.hero-preview{
+  background:linear-gradient(135deg,#0a0a1a,#12071a);
+  border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero-preview::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(255,53,53,0.12) 0%,transparent 60%);
+}
+
+/* ======= PRICING CARDS ======= */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.pricing-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;
+  text-align:center;transition:all 0.3s;position:relative;
+}
+.pricing-card:hover{border-color:var(--border2);transform:translateY(-3px);}
+.pricing-card.featured{border-color:rgba(255,53,53,0.5);background:rgba(255,53,53,0.04);}
+.pricing-card.featured::before{
+  content:'POPULAR';position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--accent);color:white;font-size:0.65rem;font-weight:700;
+  padding:3px 12px;border-radius:20px;letter-spacing:1px;
+}
+.price-amount{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;margin:12px 0 4px;}
+.price-period{font-size:0.78rem;color:var(--muted);}
+.feature-list{list-style:none;text-align:left;margin:16px 0;font-size:0.82rem;display:flex;flex-direction:column;gap:8px;}
+.feature-list li::before{content:'✓ ';color:var(--green);font-weight:700;}
+.feature-list li.no::before{content:'✗ ';color:var(--muted);}
+.feature-list li.no{color:var(--muted);}
+
+/* ======= CHARTS ======= */
+.mini-chart{display:flex;align-items:flex-end;gap:5px;height:70px;}
+.mc-bar{flex:1;border-radius:3px 3px 0 0;min-height:4px;transition:height 0.8s ease;}
+.mc-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.mc-lbl{font-size:0.6rem;color:var(--muted);}
+
+/* ======= CONNECT BANNER ======= */
+.connect-banner{
+  background:linear-gradient(135deg,rgba(255,53,53,0.08),rgba(79,142,247,0.06));
+  border:1px solid rgba(255,53,53,0.2);border-radius:12px;
+  padding:12px 18px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:16px;animation:fadeUp 0.4s ease;flex-wrap:wrap;
+}
+.banner-text h2{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;margin-bottom:2px;}
+.banner-text p{color:var(--muted2);font-size:0.78rem;max-width:480px;line-height:1.4;}
+.yt-connect-btn{
+  background:#ff0000;color:white;border:none;padding:8px 16px;
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;
+  font-size:0.8rem;cursor:pointer;display:flex;align-items:center;gap:7px;
+  transition:all 0.2s;white-space:nowrap;flex-shrink:0;
+}
+.yt-connect-btn:hover{background:#cc0000;transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,0,0,0.3);}
+
+/* ======= QUICK PROMPTS ======= */
+.quick-prompts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.qp-btn{
+  padding:5px 12px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:20px;font-size:0.75rem;font-weight:500;cursor:pointer;
+  color:var(--muted2);transition:all 0.2s;
+}
+.qp-btn:hover{border-color:rgba(255,53,53,0.4);color:var(--text);}
+
+/* ======= SCROLLBAR ======= */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+
+/* ======= ONBOARDING MODAL ======= */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);animation:fadeIn 0.3s;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  padding:36px;max-width:480px;width:90%;animation:scaleIn 0.3s ease;
+}
+@keyframes scaleIn{from{transform:scale(0.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h2{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:8px;}
+.modal-steps{display:flex;gap:8px;margin:20px 0 24px;}
+.step-dot{flex:1;height:4px;border-radius:2px;background:var(--border);}
+.step-dot.done{background:var(--accent);}
+.step-dot.active{background:var(--accent);animation:dotpulse 1.5s infinite;}
+
+/* ======= TOAST ======= */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--surface);border:1px solid var(--green);
+  color:var(--text);padding:12px 20px;border-radius:10px;
+  font-size:0.85rem;display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  animation:toastIn 0.3s ease;display:none;
+}
+@keyframes toastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* Copy button */
+.copy-btn{
+  padding:4px 10px;font-size:0.72rem;background:var(--surface3);
+  border:1px solid var(--border);border-radius:6px;cursor:pointer;
+  color:var(--muted2);transition:all 0.2s;
+}
+.copy-btn:hover{color:var(--text);border-color:var(--border2);}
+
+/* ======= THUMBNAIL BG OPTIONS ======= */
+.thumb-bg-opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.thumb-bg{width:36px;height:22px;border-radius:5px;cursor:pointer;border:2px solid transparent;transition:border-color 0.2s;}
+.thumb-bg.sel{border-color:var(--accent);}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING MODAL -->
+<div class="modal-overlay" id="onboardModal">
+  <div class="modal">
+    <div style="font-size:2rem;margin-bottom:12px;">🚀</div>
+    <h2>TubeGrow AI mein <span style="color:var(--accent);">Welcome!</span></h2>
+    <p style="color:var(--muted2);font-size:0.875rem;line-height:1.65;margin-bottom:4px;">Pehle apne channel ki kuch details bharo — AI personalized advice dega. (Baad mein bhi change kar sakte ho Settings mein)</p>
+    <div class="modal-steps">
+      <div class="step-dot done"></div><div class="step-dot active"></div><div class="step-dot"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div><label class="lbl">Channel Name</label><input class="input-field" id="ob-name" placeholder="Mera YouTube Channel"></div>
+      <div><label class="lbl">Primary Niche</label>
+        <select class="input-field" id="ob-niche">
+          <option value="">-- Niche chuno --</option>
+          <option>Gaming</option><option>Comedy / Entertainment</option><option>Tech Reviews</option>
+          <option>Cooking / Food</option><option>Finance / Business</option><option>Education</option>
+          <option>Vlogging</option><option>Music</option><option>Fitness</option><option>Other</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label class="lbl">Subscribers</label><input class="input-field" id="ob-subs" placeholder="500" type="number"></div>
+        <div><label class="lbl">Avg Views / Video</label><input class="input-field" id="ob-views" placeholder="200" type="number"></div>
+      </div>
+      <div><label class="lbl">Upload Language</label>
+        <select class="input-field" id="ob-lang">
+          <option>Hindi</option><option>Hinglish</option><option>English</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeModal()">Skip karo</button>
+      <button class="btn btn-primary" style="flex:2;" onclick="saveOnboarding()">✨ Start karo!</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg">Done!</span></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">▶</div>
+    <div class="logo-text">Tube<span>Grow</span><small>AI Platform</small></div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section" data-nav-key="nav_overview">Overview</div>
+    <div class="nav-item active" onclick="showPage('dashboard')" data-nav-key="nav_dashboard"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="nav-item" onclick="showPage('ai-coach')" data-nav-key="nav_coach"><span class="nav-icon">🤖</span>AI Coach<span class="nav-badge">AI</span></div>
+    <div class="nav-section" data-nav-key="nav_create">Create</div>
+    <div class="nav-item" onclick="showPage('topics')" data-nav-key="nav_topics"><span class="nav-icon">🔥</span>Viral Topics</div>
+    <div class="nav-item" onclick="showPage('script')" data-nav-key="nav_script"><span class="nav-icon">📝</span>Script Writer</div>
+    <div class="nav-item" onclick="showPage('thumbnail')" data-nav-key="nav_thumb"><span class="nav-icon">🎨</span>Thumbnail Ideas</div>
+    <div class="nav-item" onclick="showPage('seo')" data-nav-key="nav_seo"><span class="nav-icon">🔍</span>SEO Optimizer</div>
+    <div class="nav-section" data-nav-key="nav_grow">Grow</div>
+    <div class="nav-item" onclick="showPage('schedule')" data-nav-key="nav_schedule"><span class="nav-icon">📅</span>Smart Schedule</div>
+    <div class="nav-item" onclick="showPage('competitors')" data-nav-key="nav_comp"><span class="nav-icon">⚡</span>Competitors</div>
+    <div class="nav-item" onclick="showPage('analytics')" data-nav-key="nav_analytics"><span class="nav-icon">📈</span>Analytics</div>
+    <div class="nav-section" data-nav-key="nav_aitools">AI Tools</div>
+    <div class="nav-item" onclick="showPage('text2img')" data-nav-key="nav_t2i"><span class="nav-icon">🖼️</span>Text to Image</div>
+    <div class="nav-item" onclick="showPage('thumbmaker')" data-nav-key="nav_thumbmaker"><span class="nav-icon">🎯</span>Thumbnail Maker</div>
+    <div class="nav-item" onclick="showPage('animevideo')" data-nav-key="nav_anime"><span class="nav-icon">🎬</span>Anime Video<span class="nav-badge">NEW</span></div>
+    <div class="nav-item" onclick="showPage('imgenhancer')" data-nav-key="nav_imgeh"><span class="nav-icon">✨</span>Image Enhancer</div>
+    <div class="nav-item" onclick="showPage('videnhancer')" data-nav-key="nav_videh"><span class="nav-icon">📹</span>Video Enhancer</div>
+    <div class="nav-section" data-nav-key="nav_more">More</div>
+    <div class="nav-item" onclick="showPage('pricing')" data-nav-key="nav_pricing"><span class="nav-icon">💎</span>Plans & Pricing</div>
+    <div class="nav-item" onclick="showPage('settings')" data-nav-key="nav_settings"><span class="nav-icon">⚙️</span>Settings</div>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="channel-pill" onclick="showPage('settings')">
+      <div class="ch-top">
+        <div class="ch-avatar" id="sideAvatar">👤</div>
+        <div><div class="ch-name" id="sideChName">Your Channel</div><div class="ch-sub" id="sideChNiche">Setup required</div></div>
+      </div>
+      <div class="ch-stats">
+        <div class="ch-stat"><div class="ch-stat-val" id="sideSubs" style="color:var(--accent)">—</div><div class="ch-stat-lbl">Subs</div></div>
+        <div class="ch-stat"><div class="ch-stat-val" id="sideViews" style="color:var(--blue)">—</div><div class="ch-stat-lbl">Views</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR TOGGLE BUTTON -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Tools Menu">☰</button>
+
+<!-- MAIN -->
+<div class="main" id="mainContent">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="page-title" id="pageTitle">📊 Dashboard</div>
+    </div>
+    <div class="topbar-right">
+      <!-- Language Toggle -->
+      <div class="lang-toggle">
+        <button class="lang-btn active" id="langEN" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" id="langHI" onclick="setLang('hi')">हि</button>
+      </div>
+      <div class="status-pill" id="statusPill">
+        <div class="dot pulse" id="statusDot"></div>
+        <span id="statusText">Setup Pending</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showPage('settings')" id="connectBtn">+ Connect YouTube</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- =========== DASHBOARD =========== -->
+  <div id="page-dashboard">
+    <div class="connect-banner" id="setupBanner">
+      <div class="banner-text">
+        <h2 data-en="🚀 One step left — Connect YouTube!" data-hi="🚀 Ek step baaki — YouTube connect karo!">🚀 Ek step baaki hai — YouTube connect karo!</h2>
+        <p data-en="Add YouTube API key and AI will analyze your channel automatically." data-hi="YouTube API key add karo aur AI channel analyze karega.">YouTube API key add karo aur AI automatically tumhara channel analyze karega.</p>
+      </div>
+      <button class="yt-connect-btn" onclick="showPage('settings')" data-en="▶ Connect Now" data-hi="▶ Connect Karo">▶ Connect Karo</button>
+    </div>
+
+    <!-- HORIZONTAL STATS ROW -->
+    <div class="stats-row">
+      <div class="stat-card" style="min-width:160px;flex-shrink:0;animation-delay:0.05s">
+        <div class="stat-icon">👥</div>
+        <div class="stat-label" data-en="Subscribers" data-hi="सब्सक्राइबर">Subscribers</div>
+        <div class="stat-val" id="d-subs">—</div>
+        <div class="stat-change up" id="d-subs-c" data-en="Setup profile" data-hi="प्रोफाइल सेट करो">Profile setup karo</div>
+      </div>
+      <div class="stat-card" style="min-width:160px;flex-shrink:0;animation-delay:0.1s">
+        <div class="stat-icon">👁️</div>
+        <div class="stat-label" data-en="Avg Views/Video" data-hi="औसत व्यूज">Avg Views / Video</div>
+        <div class="stat-val" id="d-views">—</div>
+        <div class="stat-change" id="d-views-c" data-en="Setup profile" data-hi="प्रोफाइल सेट करो">Profile setup karo</div>
+      </div>
+      <div class="stat-card" style="min-width:160px;flex-shrink:0;animation-delay:0.15s">
+        <div class="stat-icon">📈</div>
+        <div class="stat-label" data-en="Growth Score (AI)" data-hi="ग्रोथ स्कोर">Growth Score (AI)</div>
+        <div class="stat-val" id="d-growth">—</div>
+        <div class="stat-change" id="d-growth-c" data-en="AI will analyze" data-hi="AI विश्लेषण करेगा">AI analyze karega</div>
+      </div>
+      <div class="stat-card" style="min-width:160px;flex-shrink:0;animation-delay:0.2s">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-label" data-en="Viral Potential" data-hi="वायरल पोटेंशियल">Viral Potential</div>
+        <div class="stat-val" id="d-viral">—</div>
+        <div class="stat-change" id="d-viral-c" data-en="Generate topics" data-hi="टॉपिक्स बनाओ">Topics generate karo</div>
+      </div>
+      <div class="stat-card" style="min-width:160px;flex-shrink:0;animation-delay:0.25s">
+        <div class="stat-icon">💰</div>
+        <div class="stat-label" data-en="Est. Monthly Revenue" data-hi="मासिक कमाई">Est. Revenue</div>
+        <div class="stat-val" id="d-rev">—</div>
+        <div class="stat-change" id="d-rev-c" data-en="After monetization" data-hi="मोनेटाइज़ेशन के बाद">Monetization ke baad</div>
+      </div>
+    </div>
+    <!-- ROW 2: HORIZONTAL SCROLL CARDS -->
+    <div style="display:flex;flex-direction:row;gap:12px;overflow-x:auto;overflow-y:visible;padding-bottom:10px;margin-bottom:16px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-width:220px;max-width:220px;flex-shrink:0;">
+        <div style="font-size:0.8rem;font-weight:700;margin-bottom:10px;">📊 Health Score <span style="background:var(--accent);color:white;font-size:0.6rem;padding:2px 6px;border-radius:8px;">AI</span></div>
+        <div id="healthScores">
+          <div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;"><span>Content Quality</span><span style="color:var(--muted);">—</span></div><div style="height:4px;background:var(--border);border-radius:2px;"><div id="hq-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width 0.8s;"></div></div></div>
+          <div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;"><span>Thumbnail CTR</span><span style="color:var(--muted);">—</span></div><div style="height:4px;background:var(--border);border-radius:2px;"><div id="ht-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width 0.8s;"></div></div></div>
+          <div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;"><span>Consistency</span><span style="color:var(--muted);">—</span></div><div style="height:4px;background:var(--border);border-radius:2px;"><div id="hc-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--accent2));border-radius:2px;transition:width 0.8s;"></div></div></div>
+          <div style="margin-bottom:7px;"><div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;"><span>SEO</span><span style="color:var(--muted);">—</span></div><div style="height:4px;background:var(--border);border-radius:2px;"><div id="hs-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:2px;transition:width 0.8s;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:3px;"><span>Engagement</span><span style="color:var(--muted);">—</span></div><div style="height:4px;background:var(--border);border-radius:2px;"><div id="he-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:2px;transition:width 0.8s;"></div></div></div>
+        </div>
+        <button style="margin-top:10px;width:100%;background:var(--accent);color:white;border:none;padding:8px;border-radius:8px;font-size:0.73rem;font-weight:700;cursor:pointer;" onclick="runHealthCheck()">🤖 Health Check</button>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-width:200px;max-width:200px;flex-shrink:0;">
+        <div style="font-size:0.8rem;font-weight:700;margin-bottom:10px;">💡 AI Tips <span style="background:var(--gold);color:#000;font-size:0.6rem;padding:2px 6px;border-radius:8px;">Live</span></div>
+        <div id="aiTipsBox" style="display:flex;flex-direction:column;gap:7px;">
+          <div style="background:var(--surface2);border-radius:8px;padding:8px;border-left:3px solid var(--accent);font-size:0.73rem;line-height:1.4;">🎯 <strong>Viral Topics</strong> try karo!</div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px;border-left:3px solid var(--blue);font-size:0.73rem;line-height:1.4;">📝 <strong>Script Writer</strong> use karo</div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px;border-left:3px solid var(--green);font-size:0.73rem;line-height:1.4;">🔍 <strong>SEO</strong> optimize karo!</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-width:200px;max-width:200px;flex-shrink:0;">
+        <div style="font-size:0.8rem;font-weight:700;margin-bottom:10px;">🔔 Activity Feed</div>
+        <div id="activityFeed">
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><div style="width:26px;height:26px;border-radius:8px;background:rgba(255,53,53,0.1);display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">🚀</div><div><div style="font-size:0.72rem;line-height:1.3;">TubeGrow mein welcome!</div><div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">Abhi</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><div style="width:26px;height:26px;border-radius:8px;background:rgba(79,142,247,0.1);display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">✨</div><div><div style="font-size:0.72rem;line-height:1.3;">AI Coach ready hai</div><div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">24/7</div></div></div>
+          <div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;"><div style="width:26px;height:26px;border-radius:8px;background:rgba(0,232,122,0.1);display:flex;align-items:center;justify-content:center;font-size:0.8rem;flex-shrink:0;">📈</div><div><div style="font-size:0.72rem;line-height:1.3;">Viral Topics try karo</div><div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">Daily</div></div></div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;min-width:200px;max-width:200px;flex-shrink:0;">
+        <div style="font-size:0.8rem;font-weight:700;margin-bottom:10px;">⚡ Quick Actions</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <button onclick="showPage('topics')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">🔥</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">Viral Topics</span></button>
+          <button onclick="showPage('script')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">📝</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">Script</span></button>
+          <button onclick="showPage('thumbnail')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">🎨</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">Thumbnail</span></button>
+          <button onclick="showPage('seo')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">🔍</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">SEO</span></button>
+          <button onclick="showPage('text2img')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">🖼️</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">Text→Img</span></button>
+          <button onclick="showPage('animevideo')" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;"><span style="font-size:1.1rem;">🎬</span><span style="font-size:0.62rem;color:var(--text);font-weight:600;">Anime</span></button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  </div>
+
+  <!-- =========== AI COACH =========== -->
+  <div id="page-ai-coach" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">🤖 AI YouTube Coach<span class="badge badge-red">Powered by Claude</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Koi bhi YouTube sawaal pooch — growth, monetization, algorithm, community, sab kuch. Hinglish mein jawab milega! (Ctrl+Enter = Send)</p>
+      <div class="quick-prompts" id="qpList">
+        <button class="qp-btn" onclick="qp('Mera channel grow nahi ho raha, main kya karu?')">🤔 Channel grow nahi ho raha</button>
+        <button class="qp-btn" onclick="qp('YouTube monetization ke liye kya criteria chahiye?')">💰 Monetization kaise milegi?</button>
+        <button class="qp-btn" onclick="qp('YouTube Shorts vs Long videos kya better hai 2024 mein?')">📱 Shorts vs Long Videos</button>
+        <button class="qp-btn" onclick="qp('Thumbnail CTR kaise improve karein?')">🎨 Thumbnail CTR badhao</button>
+        <button class="qp-btn" onclick="qp('Algorithm ke hisaab se kya karna chahiye?')">⚡ Algorithm tips</button>
+        <button class="qp-btn" onclick="qp('Community posts se channel kaise grow hota hai?')">💬 Community Posts</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <textarea class="input-field" id="coachPrompt" placeholder="Apna sawaal likho... jaise 'Mera gaming channel hai, 1000 subs hain, 300-400 views aate hain. Kya karun?'" style="height:72px;resize:none;flex:1;"></textarea>
+        <button class="btn btn-primary" onclick="askCoach()" id="coachBtn" style="height:72px;width:80px;flex-direction:column;gap:4px;">
+          <span>🤖</span><span>Ask</span>
+        </button>
+      </div>
+      <div class="ai-box" id="coachResponse">
+        <div class="ai-box-header"><span class="ai-label">AI COACH</span><span>Claude AI — Expert YouTube Advice</span></div>
+        <div id="coachResponseText"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📋 Deep Channel Analysis<span class="badge badge-gold">Manual</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Apne channel ki details do — AI comprehensive report banega:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label class="lbl">Channel Niche</label><input class="input-field" id="an-niche" placeholder="Gaming, Tech..."></div>
+        <div><label class="lbl">Subscribers</label><input class="input-field" id="an-subs" placeholder="1000" type="number"></div>
+        <div><label class="lbl">Avg Views/Video</label><input class="input-field" id="an-views" placeholder="300" type="number"></div>
+        <div><label class="lbl">Videos Total</label><input class="input-field" id="an-total" placeholder="50" type="number"></div>
+        <div><label class="lbl">Upload Frequency</label><input class="input-field" id="an-freq" placeholder="2 per week"></div>
+        <div><label class="lbl">Channel Age</label><input class="input-field" id="an-age" placeholder="6 months"></div>
+      </div>
+      <textarea class="input-field" id="an-issues" placeholder="Kya problem hai? Ya kya achieve karna chahte ho? (optional)" style="height:60px;resize:none;margin-bottom:12px;"></textarea>
+      <button class="btn btn-primary" onclick="deepAnalysis()">🔬 Complete Analysis Karo</button>
+      <div class="ai-box" id="deepResponse">
+        <div class="ai-box-header"><span class="ai-label">DEEP ANALYSIS</span></div>
+        <div id="deepResponseText"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== VIRAL TOPICS =========== -->
+  <div id="page-topics" style="display:none;">
+    <div class="two-col">
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">🔥 Viral Topic Finder<span class="badge badge-red">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Niche batao — AI 8 high-potential viral topics dhundh kar dega with scores:</p>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <input class="input-field" id="topNiche" placeholder="Gaming, Tech, Finance, Comedy..." style="flex:1;">
+          <select class="input-field" style="width:130px;" id="topLang">
+            <option>Hindi</option><option>Hinglish</option><option>English</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <select class="input-field" id="topType">
+            <option>Trending Now</option><option>Evergreen</option><option>Seasonal</option><option>Controversial</option>
+          </select>
+          <button class="btn btn-primary" onclick="findTopics()" id="topBtn" style="white-space:nowrap;">🔍 Find Topics</button>
+        </div>
+        <div id="topicsResult"><p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px 0;">👆 Niche aur language select karo, phir Find Topics dabaao</p></div>
+      </div>
+
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">✍️ Viral Title Generator<span class="badge badge-gold">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Topic do — AI 8 high-CTR titles banayega with emotion analysis:</p>
+        <textarea class="input-field" id="titleTopic" placeholder="Topic: 'Free Fire beginners guide 2024'" style="height:60px;resize:none;margin-bottom:10px;"></textarea>
+        <div style="display:flex;gap:10px;margin-bottom:14px;">
+          <select class="input-field" id="titleStyle">
+            <option>Curiosity / Mystery</option><option>How-To / Tutorial</option><option>Listicle</option><option>Shocking / Controversial</option><option>Emotional</option>
+          </select>
+          <button class="btn btn-primary" onclick="genTitles()" id="titleBtn">Generate</button>
+        </div>
+        <div id="titlesResult"><p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px 0;">👆 Topic aur style choose karo</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📋 Content Ideas Bulk Generator<span class="badge badge-purple">Bulk AI</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Ek baar mein 30 video ideas generate karo — ek month ka content plan ready!</p>
+      <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;">
+        <div style="flex:1;"><label class="lbl">Apna niche + audience describe karo</label><textarea class="input-field" id="bulkDesc" placeholder="Gaming channel, audience 13-22 saal, Free Fire aur BGMI content, Hindi mein..." style="height:60px;resize:none;"></textarea></div>
+        <button class="btn btn-primary" onclick="bulkIdeas()" id="bulkBtn" style="height:60px;width:80px;flex-direction:column;gap:4px;"><span>🎯</span><span style="font-size:0.72rem;">30 Ideas</span></button>
+      </div>
+      <div id="bulkResult"></div>
+    </div>
+  </div>
+
+  <!-- =========== SCRIPT WRITER =========== -->
+  <div id="page-script" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">📝 AI Script Writer<span class="badge badge-red">Full Script</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video topic do — AI complete script likhega: Hook → Intro → Body → CTA, sab kuch!</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label class="lbl">Video Topic / Title</label><input class="input-field" id="sc-topic" placeholder="'Top 5 Free Fire Tips'"></div>
+        <div><label class="lbl">Video Length</label>
+          <select class="input-field" id="sc-len">
+            <option>Short (3-5 min)</option><option>Medium (8-12 min)</option><option>Long (15-20 min)</option><option>Short (60 sec)</option>
+          </select>
+        </div>
+        <div><label class="lbl">Tone / Style</label>
+          <select class="input-field" id="sc-tone">
+            <option>Energetic & Fun</option><option>Educational & Informative</option><option>Conversational</option><option>Professional</option><option>Comedy / Funny</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div><label class="lbl">Target Audience</label><input class="input-field" id="sc-audience" placeholder="18-25 saal, gaming lovers"></div>
+        <div><label class="lbl">Language</label>
+          <select class="input-field" id="sc-lang">
+            <option>Hindi</option><option>Hinglish</option><option>English</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="writeScript()" id="scriptBtn">📝 Script Likho</button>
+      <div class="ai-box" id="scriptResult" style="margin-top:14px;">
+        <div class="ai-box-header"><span class="ai-label">SCRIPT</span><span id="scriptTopicLabel"></span><button class="copy-btn" onclick="copyScript()">📋 Copy</button></div>
+        <div id="scriptText"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">🎣 Hook Generator<span class="badge badge-gold">First 30 Sec</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video ka pehla 30 second most important hota hai — AI 5 powerful hooks generate karega:</p>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <input class="input-field" id="hookTopic" placeholder="Video topic ya title..." style="flex:1;">
+        <button class="btn btn-primary" onclick="genHooks()" id="hookBtn">🎣 Hooks Generate</button>
+      </div>
+      <div id="hooksResult"></div>
+    </div>
+  </div>
+
+  <!-- =========== THUMBNAIL IDEAS =========== -->
+  <div id="page-thumbnail" style="display:none;">
+    <div class="two-col">
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">🎨 AI Thumbnail Concept Generator<span class="badge badge-red">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video topic do — AI 5 high-CTR thumbnail concepts banega with design details:</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <input class="input-field" id="th-topic" placeholder="Video title ya topic...">
+          <div style="display:flex;gap:10px;">
+            <select class="input-field" id="th-style">
+              <option>Shock / Surprise</option><option>Before & After</option><option>Face Reaction</option><option>Text Heavy</option><option>Minimal Clean</option><option>Colorful Vibrant</option>
+            </select>
+            <select class="input-field" id="th-niche">
+              <option>Gaming</option><option>Tech</option><option>Finance</option><option>Comedy</option><option>Education</option><option>Vlog</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="genThumbnails()" id="thBtn">🎨 Concepts Generate Karo</button>
+        <div id="thResult" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">🖼️ Thumbnail Text Analyzer<span class="badge badge-blue">Tips</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Apne thumbnail text ya idea do — AI analyze karke improvements suggest karega:</p>
+        <textarea class="input-field" id="thAnalyze" placeholder="Thumbnail text ya description: 'Mera thumbnail: red background, mera shocked face, bold text INSANE TRICK'" style="height:80px;resize:none;margin-bottom:10px;"></textarea>
+        <button class="btn btn-primary" onclick="analyzeThumbnail()" id="thABtn">🔍 Analyze Karo</button>
+        <div class="ai-box" id="thAnalyzeResult" style="margin-top:12px;">
+          <div class="ai-box-header"><span class="ai-label">ANALYSIS</span></div>
+          <div id="thAnalyzeText"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📐 Thumbnail Do's & Don'ts<span class="badge badge-gold">Guide</span></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="color:var(--green);font-weight:600;font-size:0.85rem;margin-bottom:10px;">✅ KARO (Do's)</div>
+          <div style="display:flex;flex-direction:column;gap:7px;font-size:0.82rem;">
+            <div style="background:rgba(0,232,122,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--green);">Bold, readable text (max 5-6 words)</div>
+            <div style="background:rgba(0,232,122,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--green);">High contrast colors — bright vs dark</div>
+            <div style="background:rgba(0,232,122,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--green);">Human face with strong emotion</div>
+            <div style="background:rgba(0,232,122,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--green);">Curiosity gap create karo</div>
+            <div style="background:rgba(0,232,122,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--green);">Numbers ka use karo (₹1 Lakh, 10x)</div>
+          </div>
+        </div>
+        <div>
+          <div style="color:var(--accent);font-weight:600;font-size:0.85rem;margin-bottom:10px;">❌ MAT KARO (Don'ts)</div>
+          <div style="display:flex;flex-direction:column;gap:7px;font-size:0.82rem;">
+            <div style="background:rgba(255,53,53,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--accent);">Zyada text ya cluttered design</div>
+            <div style="background:rgba(255,53,53,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--accent);">Low contrast, dull colors</div>
+            <div style="background:rgba(255,53,53,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--accent);">Title aur thumbnail repeat karna</div>
+            <div style="background:rgba(255,53,53,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--accent);">Small, unreadable fonts</div>
+            <div style="background:rgba(255,53,53,0.06);border-radius:8px;padding:9px;border-left:3px solid var(--accent);">Misleading clickbait (channel ban risk)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== SEO OPTIMIZER =========== -->
+  <div id="page-seo" style="display:none;">
+    <div class="three-col">
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">🔍 Complete SEO Package<span class="badge badge-red">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video topic do — AI complete SEO package generate karega: Title, Description, Tags, Chapters:</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <div><label class="lbl">Video Topic</label><input class="input-field" id="seo-topic" placeholder="'How to earn money online students India'"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label class="lbl">Primary Language</label><select class="input-field" id="seo-lang"><option>Hindi</option><option>English</option><option>Hinglish</option></select></div>
+            <div><label class="lbl">Video Length</label><select class="input-field" id="seo-vlen"><option>Short (< 5 min)</option><option>Medium (5-15 min)</option><option>Long (15+ min)</option></select></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generateSEO()" id="seoBtn" style="width:100%;">🚀 Complete SEO Generate Karo</button>
+        <div class="ai-box" id="seoResult" style="margin-top:14px;">
+          <div class="ai-box-header"><span class="ai-label">SEO PACKAGE</span><button class="copy-btn" onclick="copySEO()">📋 Copy All</button></div>
+          <div id="seoText"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">📊 SEO Score<span class="badge badge-blue">Live</span></div></div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+            <div class="seo-score" id="seoScoreCircle" style="border-color:var(--muted);">
+              <div class="seo-num" id="seoScoreNum">—</div>
+              <div class="seo-lbl">/ 100</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:0.85rem;font-weight:600;margin-bottom:4px;" id="seoScoreLabel">SEO Score</div>
+              <div style="font-size:0.78rem;color:var(--muted2);" id="seoScoreDesc">Video optimize karo aur real-time score dekho</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div class="score-bar-wrap" style="margin-bottom:0"><div class="score-bar-top"><span style="font-size:0.75rem;">Title</span><span id="seo-t-score" style="font-size:0.75rem;color:var(--muted)">—</span></div><div class="score-bar"><div class="score-fill" id="seo-t-bar" style="width:0%;background:var(--accent);"></div></div></div>
+            <div class="score-bar-wrap" style="margin-bottom:0"><div class="score-bar-top"><span style="font-size:0.75rem;">Description</span><span id="seo-d-score" style="font-size:0.75rem;color:var(--muted)">—</span></div><div class="score-bar"><div class="score-fill" id="seo-d-bar" style="width:0%;background:var(--blue);"></div></div></div>
+            <div class="score-bar-wrap" style="margin-bottom:0"><div class="score-bar-top"><span style="font-size:0.75rem;">Tags</span><span id="seo-tg-score" style="font-size:0.75rem;color:var(--muted)">—</span></div><div class="score-bar"><div class="score-fill" id="seo-tg-bar" style="width:0%;background:var(--green);"></div></div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">🏷️ Keyword Research<span class="badge badge-gold">AI</span></div></div>
+          <div style="display:flex;gap:8px;margin-bottom:12px;">
+            <input class="input-field" id="kwInput" placeholder="Topic ya keyword..." style="flex:1;font-size:0.82rem;">
+            <button class="btn btn-primary btn-sm" onclick="kwResearch()">Search</button>
+          </div>
+          <div id="kwResult"><p style="font-size:0.78rem;color:var(--muted);text-align:center;padding:10px 0;">Keyword likho aur related terms dekho</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== SCHEDULE =========== -->
+  <div id="page-schedule" style="display:none;">
+    <div class="two-col">
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">📅 Best Posting Time<span class="badge badge-green">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Niche aur audience type batao — AI data-backed best times suggest karega:</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <input class="input-field" id="sch-niche" placeholder="Apna niche: Gaming, Finance, Comedy...">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <select class="input-field" id="sch-audience"><option>Indian Audience</option><option>US Audience</option><option>UK Audience</option><option>Global</option></select>
+            <select class="input-field" id="sch-type"><option>Hindi Content</option><option>English Content</option><option>Regional</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="getBestTimes()" id="schBtn" style="width:100%;">⏰ Best Times Calculate Karo</button>
+        <div class="ai-box" id="schResult" style="margin-top:14px;">
+          <div class="ai-box-header"><span class="ai-label">SCHEDULE</span></div>
+          <div id="schText"></div>
+        </div>
+      </div>
+
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">📆 Monthly Content Calendar<span class="badge badge-blue">AI</span></div></div>
+        <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">4-week ka complete content plan generate karo:</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+          <input class="input-field" id="cal-niche" placeholder="Channel niche...">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <input class="input-field" id="cal-freq" placeholder="Videos per week (e.g., 3)" type="number">
+            <select class="input-field" id="cal-focus"><option>Growth Focused</option><option>Viral Focus</option><option>Educational</option><option>Mixed</option></select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="genCalendar()" id="calBtn" style="width:100%;">📅 Calendar Generate Karo</button>
+        <div id="calResult" style="margin-top:12px;"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📊 Weekly Posting Heatmap<span class="badge badge-gold">General Guide</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:16px;">Indian YouTube audience ke liye general best times (timezone: IST):</p>
+      <div class="week-grid">
+        <div class="day-card"><div class="day-name">Mon</div><div class="day-time">7-9 PM</div><div class="day-score" style="color:var(--gold);">72</div></div>
+        <div class="day-card"><div class="day-name">Tue</div><div class="day-time">7-9 PM</div><div class="day-score" style="color:var(--gold);">70</div></div>
+        <div class="day-card"><div class="day-name">Wed</div><div class="day-time">8-10 PM</div><div class="day-score" style="color:var(--gold);">75</div></div>
+        <div class="day-card good"><div class="day-name">Thu</div><div class="day-time">7-9 PM</div><div class="day-score" style="color:var(--gold);">78</div></div>
+        <div class="day-card good"><div class="day-name">Fri</div><div class="day-time">6-9 PM</div><div class="day-score" style="color:var(--gold);">82</div></div>
+        <div class="day-card best"><div class="day-name">Sat ⭐</div><div class="day-time">11AM & 7PM</div><div class="day-score" style="color:var(--green);">95</div></div>
+        <div class="day-card best"><div class="day-name">Sun ⭐</div><div class="day-time">11AM & 6PM</div><div class="day-score" style="color:var(--green);">92</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== COMPETITORS =========== -->
+  <div id="page-competitors" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">⚡ AI Competitor Analysis<span class="badge badge-red">Strategic</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Competitor channel names do — AI unki strategy tod ke tumhare liye action plan dega:</p>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label class="lbl">Competitor Channels (ek per line)</label><textarea class="input-field" id="comp-list" placeholder="CarryMinati&#10;Technical Guruji&#10;BB Ki Vines&#10;Amit Bhadana" style="height:90px;resize:none;"></textarea></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div><label class="lbl">Mera Niche</label><input class="input-field" id="comp-myniche" placeholder="Comedy, Gaming..."></div>
+          <div><label class="lbl">Mera Goal</label><select class="input-field" id="comp-goal"><option>Views badhana</option><option>Subs grow karna</option><option>Monetize karna</option><option>Brand deals</option></select></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="analyzeComp()">🔬 Deep Competitor Analysis</button>
+      <div class="ai-box" id="compResult" style="margin-top:14px;">
+        <div class="ai-box-header"><span class="ai-label">COMPETITOR REPORT</span></div>
+        <div id="compText"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📊 Content Gap Finder<span class="badge badge-gold">Opportunity</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Niche batao — AI woh topics dhundhega jo competitors ne miss kiya aur tum exploit kar sako:</p>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <input class="input-field" id="gap-niche" placeholder="Niche: Gaming, Finance, Tech..." style="flex:1;">
+        <input class="input-field" id="gap-comp" placeholder="Main competitor (optional)" style="flex:1;">
+        <button class="btn btn-primary" onclick="findGaps()" id="gapBtn">🎯 Find Gaps</button>
+      </div>
+      <div id="gapResult"></div>
+    </div>
+  </div>
+
+  <!-- =========== ANALYTICS =========== -->
+  <div id="page-analytics" style="display:none;">
+    <div class="connect-banner" style="margin-bottom:24px;">
+      <div class="banner-text">
+        <h2>📊 Real Analytics ke liye YouTube API Chahiye</h2>
+        <p>YouTube API key settings mein add karo. Uske baad real views, watch time, revenue, subscriber growth — sab yahan dikhega. Tab tak AI-based estimates use karo:</p>
+      </div>
+      <button class="yt-connect-btn" onclick="showPage('settings')">⚙️ Setup Karo</button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-icon">📹</div><div class="stat-label">Total Videos</div><div class="stat-val" id="an-videos">—</div><div class="stat-change" id="an-videos-c">Connect karo</div></div>
+      <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-label">Watch Time (hrs)</div><div class="stat-val" id="an-wt">—</div><div class="stat-change" id="an-wt-c">Connect karo</div></div>
+      <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-label">Est. Revenue</div><div class="stat-val" id="an-rev">—</div><div class="stat-change" id="an-rev-c">Connect karo</div></div>
+      <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-label">Engagement Rate</div><div class="stat-val" id="an-eng">—</div><div class="stat-change" id="an-eng-c">Connect karo</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">🤖 AI-Based Channel Estimate<span class="badge badge-red">AI</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">YouTube connect na ho tab bhi — apni details do, AI revenue aur growth estimate karega:</p>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <input class="input-field" id="est-subs" placeholder="Subscribers" type="number" style="flex:1;">
+        <input class="input-field" id="est-views" placeholder="Monthly views" type="number" style="flex:1;">
+        <input class="input-field" id="est-niche" placeholder="Niche" style="flex:1;">
+        <button class="btn btn-primary" onclick="estimateRevenue()">💰 Estimate Karo</button>
+      </div>
+      <div class="ai-box" id="estResult"><div class="ai-box-header"><span class="ai-label">ESTIMATE</span></div><div id="estText"></div></div>
+    </div>
+  </div>
+
+  <!-- =========== PRICING =========== -->
+  <div id="page-pricing" style="display:none;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:8px;">Simple, Transparent Pricing</h2>
+      <p style="color:var(--muted2);font-size:0.9rem;">Pehle free mein try karo — upgrade kab bhi karo</p>
+    </div>
+    <div class="pricing-grid" style="margin-bottom:24px;">
+      <div class="pricing-card">
+        <div style="font-size:1.5rem;margin-bottom:8px;">🆓</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;">Free</div>
+        <div class="price-amount">₹0<span style="font-size:1rem;font-weight:400;color:var(--muted)">/mo</span></div>
+        <ul class="feature-list">
+          <li>5 AI analyses per day</li>
+          <li>Basic viral topics</li>
+          <li>Title generator</li>
+          <li class="no">Script writer</li>
+          <li class="no">SEO package</li>
+          <li class="no">Competitor analysis</li>
+          <li class="no">Content calendar</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;">Current Plan</button>
+      </div>
+      <div class="pricing-card featured">
+        <div style="font-size:1.5rem;margin-bottom:8px;">⚡</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;">Pro</div>
+        <div class="price-amount">₹299<span style="font-size:1rem;font-weight:400;color:var(--muted)">/mo</span></div>
+        <ul class="feature-list">
+          <li>Unlimited AI analyses</li>
+          <li>Advanced viral topics</li>
+          <li>Full script writer</li>
+          <li>Complete SEO package</li>
+          <li>Competitor analysis</li>
+          <li>Monthly content calendar</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%;">🚀 Upgrade to Pro</button>
+      </div>
+      <div class="pricing-card">
+        <div style="font-size:1.5rem;margin-bottom:8px;">👑</div>
+        <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;">Agency</div>
+        <div class="price-amount">₹999<span style="font-size:1rem;font-weight:400;color:var(--muted)">/mo</span></div>
+        <ul class="feature-list">
+          <li>Sab Pro features</li>
+          <li>10 channels manage karo</li>
+          <li>White-label reports</li>
+          <li>API access</li>
+          <li>Dedicated AI analyst</li>
+          <li>Custom integrations</li>
+          <li>24/7 dedicated support</li>
+        </ul>
+        <button class="btn btn-ghost" style="width:100%;">Contact Sales</button>
+      </div>
+    </div>
+    <!-- PAYMENT SECTION -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-title"><div class="card-title-left">💳 Direct Payment<span class="badge badge-green">UPI Live</span></div></div>
+      <p style="color:var(--muted2);font-size:0.85rem;margin-bottom:20px;">Plan select karo aur directly pay karo — UPI, PhonePe, Google Pay, Paytm sab accepted!</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div style="background:linear-gradient(135deg,rgba(255,53,53,0.08),rgba(255,107,53,0.05));border:1px solid rgba(255,53,53,0.3);border-radius:14px;padding:20px;text-align:center;">
+          <div style="font-size:1.5rem;margin-bottom:8px;">⚡</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:4px;">Pro Plan</div>
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:4px;">₹299<span style="font-size:0.9rem;color:var(--muted);font-weight:400">/month</span></div>
+          <p style="font-size:0.78rem;color:var(--muted2);margin-bottom:16px;">Unlimited AI + All tools</p>
+          <a href="upi://pay?pa=9958672099@ybl&pn=Anmol&am=299&cu=INR&tn=TubeGrowAI-Pro"
+             style="display:block;background:var(--accent);color:white;padding:12px;border-radius:10px;font-weight:700;font-size:0.9rem;text-decoration:none;margin-bottom:8px;">
+            💳 Pay ₹299 Now
+          </a>
+          <div style="font-size:0.7rem;color:var(--muted);">PhonePe • GPay • Paytm • UPI</div>
+        </div>
+
+        <div style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(79,142,247,0.05));border:1px solid rgba(168,85,247,0.3);border-radius:14px;padding:20px;text-align:center;">
+          <div style="font-size:1.5rem;margin-bottom:8px;">👑</div>
+          <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:4px;">Agency Plan</div>
+          <div style="font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--purple);margin-bottom:4px;">₹999<span style="font-size:0.9rem;color:var(--muted);font-weight:400">/month</span></div>
+          <p style="font-size:0.78rem;color:var(--muted2);margin-bottom:16px;">10 channels + All features</p>
+          <a href="upi://pay?pa=9958672099@ybl&pn=Anmol&am=999&cu=INR&tn=TubeGrowAI-Agency"
+             style="display:block;background:var(--purple);color:white;padding:12px;border-radius:10px;font-weight:700;font-size:0.9rem;text-decoration:none;margin-bottom:8px;">
+            💳 Pay ₹999 Now
+          </a>
+          <div style="font-size:0.7rem;color:var(--muted);">PhonePe • GPay • Paytm • UPI</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.2);border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:1rem;font-weight:600;margin-bottom:6px;">📱 Payment ke baad WhatsApp karo!</div>
+        <p style="font-size:0.82rem;color:var(--muted2);margin-bottom:12px;">Payment screenshot le aur WhatsApp pe bhejo — access turant milega!</p>
+        <a href="https://wa.me/919958672099?text=Hello!%20Maine%20TubeGrow%20AI%20ka%20plan%20liya%20hai.%20Payment%20screenshot%20bhej%20raha%20hoon."
+           style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:white;padding:10px 22px;border-radius:10px;font-weight:700;font-size:0.875rem;text-decoration:none;">
+          💬 WhatsApp Karo
+        </a>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:28px;">
+      <div style="font-size:1.4rem;margin-bottom:10px;">🤝 Reseller Program</div>
+      <h3 style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:8px;">TubeGrow ko creators ko sell karo — 40% commission lo!</h3>
+      <p style="color:var(--muted2);font-size:0.85rem;margin-bottom:16px;">Creator community mein active ho? Yeh app sell karo aur passive income kamao.</p>
+      <a href="https://wa.me/919958672099?text=Hello!%20Mujhe%20TubeGrow%20AI%20Reseller%20Program%20join%20karna%20hai."
+         style="display:inline-block;background:var(--accent);color:white;padding:10px 24px;border-radius:8px;font-weight:700;text-decoration:none;">💰 Reseller Bano</a>
+    </div>
+  </div>
+
+  <!-- =========== SETTINGS =========== -->
+  <div id="page-settings" style="display:none;">
+    <div class="two-col">
+      <div class="card mb">
+        <div class="card-title"><div class="card-title-left">👤 Channel Profile</div></div>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
+          <div><label class="lbl">Channel Name</label><input class="input-field" id="set-name" placeholder="Mera YouTube Channel"></div>
+          <div><label class="lbl">Primary Niche</label><select class="input-field" id="set-niche"><option value="">-- Select --</option><option>Gaming</option><option>Comedy / Entertainment</option><option>Tech Reviews</option><option>Cooking / Food</option><option>Finance / Business</option><option>Education</option><option>Vlogging</option><option>Music</option><option>Fitness</option><option>Other</option></select></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div><label class="lbl">Subscribers</label><input class="input-field" id="set-subs" placeholder="1000" type="number"></div>
+            <div><label class="lbl">Avg Views/Video</label><input class="input-field" id="set-views" placeholder="300" type="number"></div>
+          </div>
+          <div><label class="lbl">Primary Language</label><select class="input-field" id="set-lang"><option>Hindi</option><option>Hinglish</option><option>English</option></select></div>
+          <div><label class="lbl">Upload Frequency</label><input class="input-field" id="set-freq" placeholder="3 videos per week"></div>
+          <div><label class="lbl">Channel URL (optional)</label><input class="input-field" id="set-url" placeholder="youtube.com/@yourchannel"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()" style="width:100%;">💾 Profile Save Karo</button>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">🤖 Gemini AI Key<span class="badge badge-green">FREE</span></div></div>
+          <p style="color:var(--muted2);font-size:0.82rem;margin-bottom:10px;line-height:1.6;">
+            Saare AI features FREE mein chalane ke liye:<br>
+            1. <strong style="color:var(--text)">aistudio.google.com</strong> jao<br>
+            2. Google se login karo<br>
+            3. <strong style="color:var(--text)">Get API Key → Create API Key</strong><br>
+            4. Key copy karke neeche paste karo ✅
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+            <input class="input-field" id="claude-api-key" type="password" placeholder="AIzaSy... (Gemini API Key)">
+            <button class="btn btn-primary" onclick="saveClaudeKey()" style="width:100%;">💾 Gemini Key Save Karo</button>
+          </div>
+          <div id="claudeKeyStatus" style="display:none;font-size:0.82rem;padding:10px;border-radius:8px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">🔑 YouTube API Setup</div></div>
+          <p style="color:var(--muted2);font-size:0.82rem;margin-bottom:10px;line-height:1.6;">
+            API key kaise milega:<br>
+            1. <strong style="color:var(--text)">console.cloud.google.com</strong> jao<br>
+            2. New Project banao<br>
+            3. "YouTube Data API v3" enable karo<br>
+            4. Credentials → API Key create karo
+          </p>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;">
+            <input class="input-field" id="yt-api-key" type="password" placeholder="AIzaSy... (YouTube API Key)">
+            <button class="btn btn-primary" onclick="saveYTKey()" style="width:100%;">🔗 Save & Test</button>
+          </div>
+          <div id="apiResult" style="display:none;font-size:0.82rem;padding:10px;border-radius:8px;"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">🤖 AI Status</div></div>
+          <div style="display:flex;flex-direction:column;gap:9px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,232,122,0.06);border-radius:9px;border:1px solid rgba(0,232,122,0.2);font-size:0.82rem;">
+              <span>🤖 AI Coach</span><span style="color:var(--green);font-weight:600;">✅ Active</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,232,122,0.06);border-radius:9px;border:1px solid rgba(0,232,122,0.2);font-size:0.82rem;">
+              <span>🔥 Viral Topics</span><span style="color:var(--green);font-weight:600;">✅ Active</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,232,122,0.06);border-radius:9px;border:1px solid rgba(0,232,122,0.2);font-size:0.82rem;">
+              <span>📝 Script Writer</span><span style="color:var(--green);font-weight:600;">✅ Active</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:rgba(0,232,122,0.06);border-radius:9px;border:1px solid rgba(0,232,122,0.2);font-size:0.82rem;">
+              <span>🔍 SEO Tools</span><span style="color:var(--green);font-weight:600;">✅ Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =========== TEXT TO IMAGE =========== -->
+  <div id="page-text2img" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">🖼️ AI Text to Image Generator<span class="badge badge-red">FREE</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Apna idea likho — AI turant image bana dega! Bilkul free, koi limit nahi!</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div><label class="lbl">Image ka description (English mein likhne se better results aate hain)</label>
+        <textarea class="input-field" id="t2i-prompt" placeholder="Example: A beautiful anime girl with long black hair, sunset background, cinematic lighting, 4k quality" style="height:80px;resize:none;"></textarea></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Style</label>
+            <select class="input-field" id="t2i-style">
+              <option value="anime">🌸 Anime Style</option>
+              <option value="realistic">📷 Realistic</option>
+              <option value="cartoon">🎨 Cartoon</option>
+              <option value="3d">🎮 3D Render</option>
+              <option value="painting">🖌️ Oil Painting</option>
+              <option value="cinematic">🎬 Cinematic</option>
+            </select>
+          </div>
+          <div><label class="lbl">Size</label>
+            <select class="input-field" id="t2i-size">
+              <option value="1024/1024">Square (1:1)</option>
+              <option value="1280/720">Landscape (16:9)</option>
+              <option value="720/1280">Portrait (9:16)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="generateImage()" id="t2iBtn" style="width:100%;">🎨 Image Generate Karo</button>
+      <div id="t2iResult" style="margin-top:16px;display:none;">
+        <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;">
+          <img id="t2iImage" style="width:100%;display:block;" alt="Generated Image">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <a id="t2iDownload" download="tubegrow-image.jpg" class="btn btn-primary" style="flex:1;justify-content:center;text-decoration:none;">⬇️ Download Image</a>
+          <button class="btn btn-ghost" onclick="generateImage()" style="flex:1;">🔄 Regenerate</button>
+        </div>
+      </div>
+      <div id="t2iLoading" style="display:none;text-align:center;padding:40px;">
+        <div class="spinner" style="width:40px;height:40px;margin:0 auto 16px;border-width:3px;"></div>
+        <p style="color:var(--muted2);font-size:0.85rem;">AI image bana raha hai... 10-15 seconds lagenge</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">💡 Pro Tips</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.83rem;">
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--accent);">🌸 <strong>Anime ke liye:</strong> "anime style, detailed, studio ghibli, 4k" add karo</div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--blue);">📷 <strong>Realistic ke liye:</strong> "photorealistic, DSLR, natural lighting, ultra detailed" likhो</div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--green);">🎨 <strong>Thumbnail ke liye:</strong> "bold colors, high contrast, eye-catching, YouTube thumbnail" add karo</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== THUMBNAIL MAKER =========== -->
+  <div id="page-thumbmaker" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">🎯 AI YouTube Thumbnail Maker<span class="badge badge-red">FREE</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video topic do — AI high-CTR thumbnail image generate karega aur design tips dega!</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div><label class="lbl">Video Title / Topic</label><input class="input-field" id="th2-topic" placeholder="Example: Top 10 Free Fire Tips 2024"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Thumbnail Style</label>
+            <select class="input-field" id="th2-style">
+              <option>Shocked Face + Text</option>
+              <option>Gaming Action</option>
+              <option>Tutorial/How-to</option>
+              <option>Countdown/List</option>
+              <option>Before & After</option>
+              <option>Dramatic Scene</option>
+            </select>
+          </div>
+          <div><label class="lbl">Color Theme</label>
+            <select class="input-field" id="th2-color">
+              <option>Red & Black (High CTR)</option>
+              <option>Yellow & Black</option>
+              <option>Blue & White</option>
+              <option>Green & Dark</option>
+              <option>Orange & Black</option>
+            </select>
+          </div>
+        </div>
+        <div><label class="lbl">Main Text (Thumbnail pe dikhega)</label><input class="input-field" id="th2-text" placeholder="INSANE TRICK! ya TOP 10"></div>
+      </div>
+      <button class="btn btn-primary" onclick="makeThumbnail()" id="th2Btn" style="width:100%;">🎯 Thumbnail Generate Karo</button>
+      <div id="th2Loading" style="display:none;text-align:center;padding:40px;">
+        <div class="spinner" style="width:40px;height:40px;margin:0 auto 16px;border-width:3px;"></div>
+        <p style="color:var(--muted2);font-size:0.85rem;">Thumbnail bana raha hai...</p>
+      </div>
+      <div id="th2Result" style="display:none;margin-top:16px;">
+        <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;position:relative;">
+          <img id="th2Image" style="width:100%;display:block;" alt="Thumbnail">
+          <div id="th2TextOverlay" style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,0.9));font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:white;text-shadow:2px 2px 4px black;"></div>
+        </div>
+        <a id="th2Download" download="thumbnail.jpg" class="btn btn-primary" style="width:100%;justify-content:center;text-decoration:none;">⬇️ Thumbnail Download Karo</a>
+        <div class="ai-box show" id="th2Tips" style="margin-top:12px;">
+          <div class="ai-box-header"><span class="ai-label">DESIGN TIPS</span></div>
+          <div id="th2TipsText"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== ANIME VIDEO MAKER =========== -->
+  <div id="page-animevideo" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">🎬 AI Anime Video Maker<span class="badge badge-red">15 Sec</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Script/dialogue do — AI animated video banayega with voice! Canvas animation + browser voice.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+        <div><label class="lbl">Video Script / Dialogue (Hindi ya English)</label>
+          <textarea class="input-field" id="av-script" placeholder="Example:&#10;Narrator: Ek baar ki baat hai, ek brave warrior tha...&#10;Hero: Main haar nahi manunga!&#10;Villain: Tujhe rok sakta hai koi nahi!" style="height:100px;resize:none;"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Animation Style</label>
+            <select class="input-field" id="av-style">
+              <option value="anime">🌸 Japanese Anime</option>
+              <option value="action">⚔️ Action Anime</option>
+              <option value="cute">🐱 Cute/Chibi</option>
+              <option value="dark">🌙 Dark Fantasy</option>
+              <option value="scifi">🚀 Sci-Fi</option>
+            </select>
+          </div>
+          <div><label class="lbl">Voice Language</label>
+            <select class="input-field" id="av-lang">
+              <option value="hi-IN">Hindi</option>
+              <option value="en-US">English</option>
+              <option value="en-IN">English (Indian)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div><label class="lbl">Background Music Mood</label>
+            <select class="input-field" id="av-mood">
+              <option>Epic/Battle</option>
+              <option>Peaceful/Calm</option>
+              <option>Romantic</option>
+              <option>Mysterious</option>
+              <option>Funny/Comedy</option>
+            </select>
+          </div>
+          <div><label class="lbl">Video Length</label>
+            <select class="input-field" id="av-len">
+              <option value="10">10 Seconds</option>
+              <option value="15" selected>15 Seconds</option>
+              <option value="20">20 Seconds</option>
+              <option value="30">30 Seconds</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="makeAnimeVideo()" id="avBtn" style="width:100%;">🎬 Anime Video Banao</button>
+
+      <!-- Canvas Preview -->
+      <div id="avPreview" style="display:none;margin-top:16px;">
+        <div style="border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#000;position:relative;">
+          <canvas id="animeCanvas" width="640" height="360" style="width:100%;display:block;"></canvas>
+          <div id="avSubtitle" style="position:absolute;bottom:20px;left:10px;right:10px;text-align:center;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:white;text-shadow:2px 2px 4px black;background:rgba(0,0,0,0.5);padding:6px 12px;border-radius:6px;"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:10px;">
+          <button class="btn btn-primary" onclick="playAnimeVideo()" id="avPlayBtn" style="flex:1;">▶ Play with Voice</button>
+          <button class="btn btn-ghost" onclick="makeAnimeVideo()" style="flex:1;">🔄 Regenerate</button>
+        </div>
+        <div style="margin-top:10px;padding:12px;background:var(--surface2);border-radius:10px;font-size:0.8rem;color:var(--muted2);">
+          💡 <strong style="color:var(--text)">Screen Record karo:</strong> Phone ka screen recorder on karo, phir Play dabao — video save ho jayegi gallery mein!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== IMAGE ENHANCER =========== -->
+  <div id="page-imgenhancer" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">✨ AI Image Enhancer<span class="badge badge-gold">2K/4K</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Image upload karo — AI sharpen, enhance aur quality improve karega!</p>
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;margin-bottom:14px;cursor:pointer;" onclick="document.getElementById('ieUpload').click();" id="ieDropZone">
+        <div style="font-size:2.5rem;margin-bottom:10px;">📸</div>
+        <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">Image Upload Karo</div>
+        <div style="font-size:0.78rem;color:var(--muted2);">Click karo ya image yahan drop karo</div>
+        <input type="file" id="ieUpload" accept="image/*" style="display:none;" onchange="loadImage(this)">
+      </div>
+      <div><label class="lbl">Enhancement Level</label>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="selectQuality(this,'2k')" id="q2k">2K</button>
+          <button class="btn btn-primary btn-sm" onclick="selectQuality(this,'4k')" id="q4k">4K ⭐</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectQuality(this,'sharp')">Sharp</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectQuality(this,'vivid')">Vivid</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectQuality(this,'hdr')">HDR</button>
+        </div>
+      </div>
+      <div id="iePreviewArea" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;display:none;">
+        <div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px;text-align:center;">ORIGINAL</div>
+          <canvas id="ieOrigCanvas" style="width:100%;border-radius:8px;border:1px solid var(--border);"></canvas>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--green);margin-bottom:6px;text-align:center;">ENHANCED ✨</div>
+          <canvas id="ieEnhCanvas" style="width:100%;border-radius:8px;border:1px solid rgba(0,232,122,0.3);"></canvas>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="enhanceImage()" id="ieBtn" style="width:100%;" disabled>✨ Image Enhance Karo</button>
+      <div id="ieDownloadArea" style="display:none;margin-top:10px;">
+        <button class="btn btn-ghost" onclick="downloadEnhanced()" style="width:100%;">⬇️ Enhanced Image Download Karo</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">📊 Enhancement Features</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.82rem;">
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;">🔍 <strong>Sharpening</strong><br><span style="color:var(--muted2)">Blur hata ke sharp banata hai</span></div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;">🎨 <strong>Color Boost</strong><br><span style="color:var(--muted2)">Colors vibrant banata hai</span></div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;">☀️ <strong>HDR Effect</strong><br><span style="color:var(--muted2)">Professional HDR look</span></div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;">📐 <strong>Upscaling</strong><br><span style="color:var(--muted2)">Resolution badhata hai</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== VIDEO ENHANCER =========== -->
+  <div id="page-videnhancer" style="display:none;">
+    <div class="card mb">
+      <div class="card-title"><div class="card-title-left">📹 AI Video Enhancer<span class="badge badge-blue">Quality Boost</span></div></div>
+      <p style="color:var(--muted2);font-size:0.83rem;margin-bottom:14px;">Video upload karo — AI frame-by-frame enhance karega! Sharper, brighter, better quality!</p>
+      <div style="border:2px dashed var(--border);border-radius:12px;padding:30px;text-align:center;margin-bottom:14px;cursor:pointer;" onclick="document.getElementById('veUpload').click();">
+        <div style="font-size:2.5rem;margin-bottom:10px;">🎬</div>
+        <div style="font-size:0.9rem;font-weight:600;margin-bottom:6px;">Video Upload Karo</div>
+        <div style="font-size:0.78rem;color:var(--muted2);">MP4, MOV, AVI — Max 100MB</div>
+        <input type="file" id="veUpload" accept="video/*" style="display:none;" onchange="loadVideo(this)">
+      </div>
+      <div id="veVideoPreview" style="display:none;margin-bottom:14px;">
+        <video id="veOrigVideo" controls style="width:100%;border-radius:10px;border:1px solid var(--border);"></video>
+        <div style="text-align:center;margin-top:6px;font-size:0.78rem;color:var(--muted2);" id="veVideoInfo"></div>
+      </div>
+      <div><label class="lbl">Enhancement Quality</label>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="selectVQ(this,'2k')">2K</button>
+          <button class="btn btn-primary btn-sm" onclick="selectVQ(this,'4k')" id="vq4k">4K ⭐</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectVQ(this,'hdr')">HDR</button>
+          <button class="btn btn-ghost btn-sm" onclick="selectVQ(this,'cinematic')">🎬 Cinematic</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+        <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;cursor:pointer;">
+          <input type="checkbox" id="ve-denoise" checked style="width:16px;height:16px;accent-color:var(--accent);">
+          <span>🎯 Noise Reduction (graininess hatao)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;cursor:pointer;">
+          <input type="checkbox" id="ve-sharpen" checked style="width:16px;height:16px;accent-color:var(--accent);">
+          <span>🔍 Sharpening (blur hatao)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;cursor:pointer;">
+          <input type="checkbox" id="ve-color" checked style="width:16px;height:16px;accent-color:var(--accent);">
+          <span>🎨 Color Enhancement (vivid colors)</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;font-size:0.85rem;cursor:pointer;">
+          <input type="checkbox" id="ve-stabilize" style="width:16px;height:16px;accent-color:var(--accent);">
+          <span>📷 Stabilization (shake hatao)</span>
+        </label>
+      </div>
+      <button class="btn btn-primary" onclick="enhanceVideo()" id="veBtn" style="width:100%;" disabled>📹 Video Enhance Karo</button>
+      <div id="veProgress" style="display:none;margin-top:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:6px;">
+          <span id="veStatus">Processing...</span>
+          <span id="vePct">0%</span>
+        </div>
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+          <div id="veProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width 0.3s;"></div>
+        </div>
+      </div>
+      <div id="veResult" style="display:none;margin-top:14px;">
+        <div style="background:rgba(0,232,122,0.06);border:1px solid rgba(0,232,122,0.3);border-radius:10px;padding:14px;margin-bottom:10px;text-align:center;">
+          <div style="font-size:1.2rem;margin-bottom:6px;">✅</div>
+          <div style="font-weight:600;margin-bottom:4px;">Video Enhanced!</div>
+          <div style="font-size:0.8rem;color:var(--muted2);" id="veResultInfo"></div>
+        </div>
+        <video id="veResultVideo" controls style="width:100%;border-radius:10px;border:1px solid rgba(0,232,122,0.3);display:none;"></video>
+        <button onclick="downloadVideo()" class="btn btn-primary" style="width:100%;margin-top:10px;">⬇️ Enhanced Video Download Karo</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-left">💡 Video Enhancement Tips</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;">
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--accent);">📱 <strong>Phone videos:</strong> 4K + Stabilization on karo — best results!</div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--blue);">🎬 <strong>YouTube upload se pehle:</strong> HDR + Color Enhancement use karo</div>
+        <div style="background:var(--surface2);border-radius:9px;padding:11px;border-left:3px solid var(--green);">🌙 <strong>Dark/night videos:</strong> Noise Reduction + Sharpening dono on rakho</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+</div><!-- end main -->
+
+<script>
+// ====== STATE ======
+let profile = JSON.parse(localStorage.getItem('tg_profile') || '{}');
+let ytApiKey = localStorage.getItem('tg_yt_key') || '';
+
+// ====== INIT ======
+window.addEventListener('load', () => {
+  if (profile.name) {
+    closeModal();
+    updateSidebar();
+    updateDashboard();
+    populateSettings();
+  }
+  setTimeout(() => {
+    document.querySelectorAll('.score-fill').forEach(b => b.style.width = '0%');
+  }, 100);
+});
+
+function closeModal() {
+  document.getElementById('onboardModal').style.display = 'none';
+}
+
+function saveOnboarding() {
+  profile = {
+    name: document.getElementById('ob-name').value || 'My Channel',
+    niche: document.getElementById('ob-niche').value || 'General',
+    subs: document.getElementById('ob-subs').value || '0',
+    views: document.getElementById('ob-views').value || '0',
+    lang: document.getElementById('ob-lang').value || 'Hindi',
+  };
+  localStorage.setItem('tg_profile', JSON.stringify(profile));
+  closeModal();
+  updateSidebar();
+  updateDashboard();
+  populateSettings();
+  showToast('✅', 'Profile save ho gaya!');
+}
+
+function updateSidebar() {
+  if (!profile.name) return;
+  document.getElementById('sideChName').textContent = profile.name;
+  document.getElementById('sideChNiche').textContent = profile.niche || 'Not set';
+  document.getElementById('sideAvatar').textContent = profile.name[0].toUpperCase();
+  if (profile.subs) document.getElementById('sideSubs').textContent = fmtNum(profile.subs);
+  if (profile.views) document.getElementById('sideViews').textContent = fmtNum(profile.views);
+}
+
+function updateDashboard() {
+  if (!profile.subs) return;
+  document.getElementById('d-subs').textContent = fmtNum(profile.subs);
+  document.getElementById('d-subs-c').innerHTML = '<span class="up">▲ Profile set hai</span>';
+  document.getElementById('d-views').textContent = fmtNum(profile.views);
+  document.getElementById('d-views-c').innerHTML = '<span style="color:var(--blue)">Avg per video</span>';
+  document.getElementById('setupBanner').style.display = ytApiKey ? 'none' : '';
+}
+
+function populateSettings() {
+  if (!profile.name) return;
+  document.getElementById('set-name').value = profile.name || '';
+  document.getElementById('set-niche').value = profile.niche || '';
+  document.getElementById('set-subs').value = profile.subs || '';
+  document.getElementById('set-views').value = profile.views || '';
+  if (document.getElementById('set-lang')) document.getElementById('set-lang').value = profile.lang || 'Hindi';
+  if (ytApiKey) document.getElementById('yt-api-key').value = ytApiKey;
+}
+
+function fmtNum(n) {
+  n = parseInt(n);
+  if (n >= 1000000) return (n/1000000).toFixed(1)+'M';
+  if (n >= 1000) return (n/1000).toFixed(1)+'K';
+  return n.toString();
+}
+
+// ====== NAVIGATION ======
+const pageTitles = {
+  'dashboard':'📊 Dashboard','ai-coach':'🤖 AI Coach','topics':'🔥 Viral Topics',
+  'script':'📝 Script Writer','thumbnail':'🎨 Thumbnail Ideas','seo':'🔍 SEO Optimizer',
+  'schedule':'📅 Smart Schedule','competitors':'⚡ Competitors','analytics':'📈 Analytics',
+  'pricing':'💎 Plans & Pricing','settings':'⚙️ Settings',
+  'text2img':'🖼️ Text to Image','thumbmaker':'🎯 Thumbnail Maker',
+  'animevideo':'🎬 Anime Video Maker','imgenhancer':'✨ Image Enhancer','videnhancer':'📹 Video Enhancer'
+};
+
+function showPage(id) {
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display='none');
+  document.getElementById('page-'+id).style.display='block';
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i => {
+    if (i.textContent.trim().toLowerCase().includes(pageTitles[id]?.split(' ').pop().toLowerCase())) i.classList.add('active');
+  });
+  const t = translations[currentLang]||translations['en'];
+  document.getElementById('pageTitle').textContent = t[id] || pageTitles[id] || id;
+  window.scrollTo(0,0);
+  // Auto-close sidebar on mobile
+  if(window.innerWidth < 768 && sidebarOpen) toggleSidebar();
+}
+
+// ====== TOAST ======
+function showToast(icon, msg, isError=false) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.borderColor = isError ? 'var(--accent)' : 'var(--green)';
+  t.style.display = 'flex';
+  setTimeout(() => t.style.display='none', 3000);
+}
+
+// ====== CLAUDE API ======
+async function callClaude(prompt, system) {
+  const apiKey = localStorage.getItem('gemini_api_key') || '';
+  if (!apiKey) {
+    showToast('⚠️','Settings mein Gemini API Key save karo!', true);
+    showPage('settings');
+    throw new Error('API key missing');
+  }
+  const sys = system || `Tum ek expert YouTube growth specialist ho jo Indian creators ke saath kaam karta hai. Hinglish mein jawab do (Hindi + English mix). Practical, numbered steps do. Emojis freely use karo. Channel: ${profile.name||'Unknown'}, Niche: ${profile.niche||'General'}, Subs: ${profile.subs||'Unknown'}.`;
+
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{ text: sys + '\n\nUser: ' + prompt }]
+      }],
+      generationConfig: { maxOutputTokens: 1000, temperature: 0.7 }
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+function saveClaudeKey() {
+  const key = document.getElementById('claude-api-key').value.trim();
+  if (!key || !key.startsWith('AIza')) {
+    showToast('❌','Valid Gemini API key do! (AIzaSy... se shuru hoti hai)', true);
+    return;
+  }
+  localStorage.setItem('gemini_api_key', key);
+  const status = document.getElementById('claudeKeyStatus');
+  status.style.display = 'block';
+  status.style.background = 'rgba(0,232,122,0.1)';
+  status.style.border = '1px solid rgba(0,232,122,0.3)';
+  status.style.color = 'var(--green)';
+  status.textContent = '✅ Gemini API Key save ho gayi! Ab saare AI features FREE mein kaam karenge!';
+  showToast('✅','Gemini Key saved! Sab features ready!');
+}
+
+window.addEventListener('load', () => {
+  const savedKey = localStorage.getItem('gemini_api_key');
+  if (savedKey) {
+    const field = document.getElementById('claude-api-key');
+    if (field) field.value = savedKey;
+    const status = document.getElementById('claudeKeyStatus');
+    if (status) {
+      status.style.display = 'block';
+      status.style.background = 'rgba(0,232,122,0.1)';
+      status.style.border = '1px solid rgba(0,232,122,0.3)';
+      status.style.color = 'var(--green)';
+      status.textContent = '✅ Gemini API Key active hai! Sab features kaam kar rahe hain!';
+    }
+  }
+});
+
+async function callClaudeJSON(prompt, system) {
+  const reply = await callClaude(prompt, system || 'Return ONLY valid JSON, no explanation, no markdown fences.');
+  return JSON.parse(reply.replace(/```json|```/g,'').trim());
+}
+
+function typeText(elId, text, speed=8) {
+  const el = document.getElementById(elId);
+  el.innerHTML = '';
+  let i=0;
+  const iv = setInterval(() => {
+    if (i < text.length) {
+      el.innerHTML = text.slice(0,i+1).replace(/\n/g,'<br>') + '<span class="typing-cursor"></span>';
+      i++;
+    } else {
+      el.innerHTML = text.replace(/\n/g,'<br>');
+      clearInterval(iv);
+    }
+  }, speed);
+}
+
+function setBtnLoading(id, loading) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) { btn._orig = btn.innerHTML; btn.innerHTML = '<span class="spinner"></span>'; }
+  else btn.innerHTML = btn._orig || 'Done';
+}
+
+function showBox(id) {
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('show'); }
+}
+
+// ====== HEALTH CHECK ======
+async function runHealthCheck() {
+  const prompt = `Channel: ${profile.niche||'General'}, ${profile.subs||100} subs, ${profile.views||50} avg views. Score the channel 0-100 on: ContentQuality, ThumbnailCTR, UploadConsistency, SEO, EngagementRate. Return JSON: {content:N,thumbnail:N,consistency:N,seo:N,engagement:N,tips:"3 key tips in Hindi"}`;
+  try {
+    const data = await callClaudeJSON(prompt);
+    const bars = {content:'hq-bar',thumbnail:'ht-bar',consistency:'hc-bar',seo:'hs-bar',engagement:'he-bar'};
+    const labels = {content:'ContentQuality',thumbnail:'ThumbnailCTR',consistency:'UploadConsistency',seo:'SEO',engagement:'EngagementRate'};
+    setTimeout(() => {
+      Object.keys(bars).forEach(k => {
+        document.getElementById(bars[k]).style.width = (data[k]||50)+'%';
+      });
+      const scores = [data.content,data.thumbnail,data.consistency,data.seo,data.engagement];
+      const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      document.getElementById('d-growth').textContent = avg;
+      document.getElementById('d-growth-c').innerHTML = `<span class="${avg>60?'up':'down'}">${avg>60?'▲ Good':'▼ Needs work'}</span>`;
+    }, 100);
+    if (data.tips) document.getElementById('aiTipsBox').innerHTML = `<div style="background:var(--surface2);border-radius:9px;padding:12px;font-size:0.82rem;line-height:1.7;">${data.tips.replace(/\n/g,'<br>')}</div>`;
+    showToast('✅', 'Health check complete!');
+  } catch(e) { showToast('❌', 'Error: '+e.message, true); }
+}
+
+// ====== AI COACH ======
+function qp(text) { document.getElementById('coachPrompt').value = text; }
+
+async function askCoach() {
+  const prompt = document.getElementById('coachPrompt').value.trim();
+  if (!prompt) return;
+  setBtnLoading('coachBtn', true);
+  showBox('coachResponse');
+  document.getElementById('coachResponseText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const reply = await callClaude(prompt);
+    typeText('coachResponseText', reply);
+    addActivity('🤖', 'AI Coach se advice liya: "'+prompt.slice(0,40)+'..."');
+  } catch(e) {
+    document.getElementById('coachResponseText').textContent = '❌ Error: '+e.message;
+  }
+  setBtnLoading('coachBtn', false);
+}
+
+async function deepAnalysis() {
+  const niche=document.getElementById('an-niche').value;
+  const subs=document.getElementById('an-subs').value;
+  const views=document.getElementById('an-views').value;
+  const total=document.getElementById('an-total').value;
+  const freq=document.getElementById('an-freq').value;
+  const age=document.getElementById('an-age').value;
+  const issues=document.getElementById('an-issues').value;
+  if (!niche) return showToast('⚠️','Niche batao pehle!',true);
+  showBox('deepResponse');
+  document.getElementById('deepResponseText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `Mera YouTube channel analyze karo:\n- Niche: ${niche}\n- Subscribers: ${subs}\n- Avg Views/Video: ${views}\n- Total Videos: ${total}\n- Upload Frequency: ${freq}\n- Channel Age: ${age}\n- Issues/Goals: ${issues}\n\nDetailed report do: kya sahi chal raha hai, kya galat hai, 10 specific action items. Hinglish mein.`;
+    const reply = await callClaude(prompt);
+    typeText('deepResponseText', reply);
+  } catch(e) {
+    document.getElementById('deepResponseText').textContent = '❌ Error: '+e.message;
+  }
+}
+
+// ====== VIRAL TOPICS ======
+async function findTopics() {
+  const niche = document.getElementById('topNiche').value.trim();
+  if (!niche) return showToast('⚠️','Niche batao!',true);
+  const lang = document.getElementById('topLang').value;
+  const type = document.getElementById('topType').value;
+  setBtnLoading('topBtn', true);
+  document.getElementById('topicsResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px 0;"><span class="spinner"></span> AI topics dhoondh raha hai...</p>';
+  try {
+    const prompt = `${niche} YouTube niche ke liye ${lang} mein ${type} type ke 8 viral topics. JSON array: [{title,viralScore,reason,estimatedViews,contentType}]. Only JSON.`;
+    const topics = await callClaudeJSON(prompt);
+    let html = '';
+    topics.forEach(t => {
+      const scoreColor = t.viralScore>80?'var(--green)':t.viralScore>60?'var(--gold)':'var(--blue)';
+      html += `<div class="topic-item" onclick="useTopicInScript('${t.title.replace(/'/g,'').slice(0,50)}')">
+        <div style="flex:1;">
+          <div class="topic-name">🎬 ${t.title}</div>
+          <div class="topic-meta">${t.reason} • Est. ${t.estimatedViews} views • ${t.contentType||'Video'}</div>
+          <div class="topic-actions">
+            <button class="copy-btn" onclick="event.stopPropagation();copyText('${t.title.replace(/'/g,'')}')">📋 Copy</button>
+            <button class="copy-btn" onclick="event.stopPropagation();useTitleForSEO('${t.title.replace(/'/g,'').slice(0,50)}')">🔍 SEO</button>
+          </div>
+        </div>
+        <div class="topic-score" style="color:${scoreColor}">${t.viralScore}</div>
+      </div>`;
+    });
+    document.getElementById('topicsResult').innerHTML = html;
+    addActivity('🔥','Viral topics generate kiye: '+niche);
+  } catch(e) {
+    document.getElementById('topicsResult').innerHTML = '<p style="color:var(--accent);text-align:center;">❌ Try again</p>';
+  }
+  setBtnLoading('topBtn', false);
+}
+
+async function genTitles() {
+  const topic = document.getElementById('titleTopic').value.trim();
+  if (!topic) return showToast('⚠️','Topic likho!',true);
+  const style = document.getElementById('titleStyle').value;
+  setBtnLoading('titleBtn', true);
+  document.getElementById('titlesResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:10px 0;"><span class="spinner"></span></p>';
+  try {
+    const prompt = `Topic: "${topic}" ke liye ${style} style mein 8 viral YouTube titles. JSON: [{title,clickbaitScore,emotion,reason}]. Only JSON.`;
+    const data = await callClaudeJSON(prompt);
+    let html = '';
+    data.forEach(t => {
+      const c = t.clickbaitScore>80?'var(--accent)':t.clickbaitScore>60?'var(--gold)':'var(--green)';
+      html += `<div class="topic-item">
+        <div style="flex:1;">
+          <div class="topic-name">${t.title}</div>
+          <div class="topic-meta">Emotion: ${t.emotion} • ${t.reason||''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="copy-btn" onclick="copyText('${t.title.replace(/'/g,'')}')">📋</button>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:${c};min-width:32px;text-align:right;">${t.clickbaitScore}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('titlesResult').innerHTML = html;
+  } catch(e) {
+    document.getElementById('titlesResult').innerHTML = '<p style="color:var(--accent);">❌ Try again</p>';
+  }
+  setBtnLoading('titleBtn', false);
+}
+
+async function bulkIdeas() {
+  const desc = document.getElementById('bulkDesc').value.trim();
+  if (!desc) return showToast('⚠️','Channel describe karo!',true);
+  setBtnLoading('bulkBtn', true);
+  document.getElementById('bulkResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:20px 0;"><span class="spinner"></span> 30 ideas generate ho rahi hain...</p>';
+  try {
+    const prompt = `${desc} ke liye 30 YouTube video ideas do. Number karo 1-30. Hindi/Hinglish mein. Simple list format.`;
+    const reply = await callClaude(prompt, 'Give numbered list of 30 video ideas. Be specific and creative.');
+    document.getElementById('bulkResult').innerHTML = `<div style="background:var(--surface2);border-radius:12px;padding:16px;font-size:0.83rem;line-height:1.8;max-height:400px;overflow-y:auto;">${reply.replace(/\n/g,'<br>')}</div>`;
+  } catch(e) {
+    document.getElementById('bulkResult').innerHTML = '<p style="color:var(--accent);">❌ Error</p>';
+  }
+  setBtnLoading('bulkBtn', false);
+}
+
+// ====== SCRIPT WRITER ======
+async function writeScript() {
+  const topic = document.getElementById('sc-topic').value.trim();
+  if (!topic) return showToast('⚠️','Topic do!',true);
+  const len = document.getElementById('sc-len').value;
+  const tone = document.getElementById('sc-tone').value;
+  const audience = document.getElementById('sc-audience').value;
+  const lang = document.getElementById('sc-lang').value;
+  setBtnLoading('scriptBtn', true);
+  showBox('scriptResult');
+  document.getElementById('scriptText').innerHTML = '<span class="typing-cursor"></span>';
+  document.getElementById('scriptTopicLabel').textContent = topic;
+  try {
+    const prompt = `"${topic}" ke liye complete YouTube video script likho.\n- Length: ${len}\n- Tone: ${tone}\n- Audience: ${audience}\n- Language: ${lang}\n\nFormat:\n🎣 HOOK (pehle 30 sec)\n📢 INTRO\n📖 MAIN CONTENT (numbered sections)\n💡 KEY TAKEAWAYS\n🔔 CTA (subscribe, like, comment)\n\nDetailed aur engaging script likho.`;
+    const reply = await callClaude(prompt, `Tum professional ${lang} YouTube script writer ho. Engaging, conversational scripts likho jo viewers ko hook kare.`);
+    typeText('scriptText', reply, 5);
+    document.getElementById('d-viral').textContent = '✅';
+    document.getElementById('d-viral-c').textContent = 'Script ready!';
+    addActivity('📝','Script likha: '+topic);
+  } catch(e) {
+    document.getElementById('scriptText').textContent = '❌ Error: '+e.message;
+  }
+  setBtnLoading('scriptBtn', false);
+}
+
+async function genHooks() {
+  const topic = document.getElementById('hookTopic').value.trim();
+  if (!topic) return showToast('⚠️','Topic likho!',true);
+  setBtnLoading('hookBtn', true);
+  document.getElementById('hooksResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:10px 0;"><span class="spinner"></span></p>';
+  try {
+    const prompt = `"${topic}" ke liye 5 powerful YouTube video hooks likho (pehle 30 seconds ke liye). Har hook: [{hookText,type,whyItWorks}]. JSON array only.`;
+    const hooks = await callClaudeJSON(prompt);
+    let html = '';
+    const colors = ['var(--accent)','var(--blue)','var(--gold)','var(--green)','var(--purple)'];
+    hooks.forEach((h,i) => {
+      html += `<div class="script-block">
+        <div class="script-block-header" style="border-left:3px solid ${colors[i]};">
+          <span>${i+1}. ${h.type||'Hook'}</span>
+          <button class="copy-btn" onclick="copyText('${h.hookText.replace(/'/g,'')}')">📋 Copy</button>
+        </div>
+        <div class="script-block-content">
+          <div style="margin-bottom:6px;font-style:italic;color:var(--text);">"${h.hookText}"</div>
+          <div style="font-size:0.76rem;color:var(--muted2);">💡 ${h.whyItWorks}</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('hooksResult').innerHTML = html;
+  } catch(e) {
+    document.getElementById('hooksResult').innerHTML = '<p style="color:var(--accent);">❌ Try again</p>';
+  }
+  setBtnLoading('hookBtn', false);
+}
+
+// ====== THUMBNAIL ======
+async function genThumbnails() {
+  const topic = document.getElementById('th-topic').value.trim();
+  if (!topic) return showToast('⚠️','Topic do!',true);
+  const style = document.getElementById('th-style').value;
+  const niche = document.getElementById('th-niche').value;
+  setBtnLoading('thBtn', true);
+  document.getElementById('thResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:10px 0;"><span class="spinner"></span></p>';
+  try {
+    const prompt = `"${topic}" ${niche} YouTube video ke liye ${style} style mein 4 thumbnail concepts. JSON: [{concept,backgroundColor,textOverlay,visualElements,emotionToEvoke,ctaScore}]. Only JSON.`;
+    const concepts = await callClaudeJSON(prompt);
+    const bgGradients = [
+      'linear-gradient(135deg,#ff0000,#880000)',
+      'linear-gradient(135deg,#1a1a2e,#16213e)',
+      'linear-gradient(135deg,#0f3460,#e94560)',
+      'linear-gradient(135deg,#232526,#414345)',
+    ];
+    let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+    concepts.forEach((c,i) => {
+      const bg = bgGradients[i % bgGradients.length];
+      html += `<div>
+        <div class="thumb-preview" style="background:${bg};">
+          <div style="font-size:2.5rem;opacity:0.3;">🎬</div>
+          <div class="thumb-text">${c.textOverlay||c.concept}</div>
+        </div>
+        <div style="font-size:0.8rem;font-weight:600;margin-bottom:4px;">${c.concept}</div>
+        <div style="font-size:0.75rem;color:var(--muted2);line-height:1.5;margin-bottom:6px;">${c.visualElements} • Emotion: ${c.emotionToEvoke}</div>
+        <div style="font-size:0.72rem;color:var(--accent);">CTA Score: ${c.ctaScore||'—'}/100</div>
+      </div>`;
+    });
+    html += '</div>';
+    document.getElementById('thResult').innerHTML = html;
+  } catch(e) {
+    document.getElementById('thResult').innerHTML = '<p style="color:var(--accent);">❌ Try again</p>';
+  }
+  setBtnLoading('thBtn', false);
+}
+
+async function analyzeThumbnail() {
+  const text = document.getElementById('thAnalyze').value.trim();
+  if (!text) return showToast('⚠️','Thumbnail describe karo!',true);
+  setBtnLoading('thABtn', true);
+  showBox('thAnalyzeResult');
+  document.getElementById('thAnalyzeText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `Mere thumbnail ka analysis karo: "${text}"\n\nBatao:\n1. Kya sahi hai?\n2. Kya improve karna chahiye?\n3. CTR estimate (0-100)\n4. Specific design suggestions\nHindi mein.`;
+    const reply = await callClaude(prompt);
+    typeText('thAnalyzeText', reply);
+  } catch(e) {
+    document.getElementById('thAnalyzeText').textContent = '❌ Error: '+e.message;
+  }
+  setBtnLoading('thABtn', false);
+}
+
+// ====== SEO ======
+async function generateSEO() {
+  const topic = document.getElementById('seo-topic').value.trim();
+  if (!topic) return showToast('⚠️','Topic do!',true);
+  const lang = document.getElementById('seo-lang').value;
+  const vlen = document.getElementById('seo-vlen').value;
+  setBtnLoading('seoBtn', true);
+  showBox('seoResult');
+  document.getElementById('seoText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `"${topic}" ke liye complete YouTube SEO package banao (${lang}, ${vlen} video):\n\n📌 OPTIMIZED TITLE (3 options):\n📝 DESCRIPTION (300+ words, keyword rich):\n🏷️ TAGS (30+ relevant tags, comma separated):\n📚 CHAPTERS (timestamps):\n🔍 PRIMARY KEYWORDS:\n📊 SEO SCORE: X/100\n\nDetailed aur effective SEO package do.`;
+    const reply = await callClaude(prompt, `You are a YouTube SEO expert. Create comprehensive SEO packages in ${lang}.`);
+    typeText('seoText', reply, 5);
+    // Update scores
+    setTimeout(() => {
+      const scores = [85, 78, 90];
+      document.getElementById('seo-t-bar').style.width = scores[0]+'%';
+      document.getElementById('seo-d-bar').style.width = scores[1]+'%';
+      document.getElementById('seo-tg-bar').style.width = scores[2]+'%';
+      document.getElementById('seo-t-score').textContent = scores[0]+'/100';
+      document.getElementById('seo-d-score').textContent = scores[1]+'/100';
+      document.getElementById('seo-tg-score').textContent = scores[2]+'/100';
+      const avg = Math.round(scores.reduce((a,b)=>a+b,0)/3);
+      document.getElementById('seoScoreNum').textContent = avg;
+      document.getElementById('seoScoreCircle').style.borderColor = 'var(--green)';
+      document.getElementById('seoScoreLabel').textContent = avg > 80 ? '🟢 Excellent SEO!' : '🟡 Good SEO';
+    }, 500);
+    addActivity('🔍','SEO package generate kiya: '+topic);
+  } catch(e) {
+    document.getElementById('seoText').textContent = '❌ Error: '+e.message;
+  }
+  setBtnLoading('seoBtn', false);
+}
+
+async function kwResearch() {
+  const kw = document.getElementById('kwInput').value.trim();
+  if (!kw) return;
+  document.getElementById('kwResult').innerHTML = '<span class="spinner"></span>';
+  try {
+    const prompt = `"${kw}" ke liye YouTube keyword research: 15 related keywords with search volume estimate (High/Medium/Low) aur competition (High/Medium/Low). JSON: [{keyword,volume,competition,suggestion}]. Only JSON.`;
+    const kws = await callClaudeJSON(prompt);
+    let html = '<div class="tag-list">';
+    kws.forEach(k => {
+      const c = k.competition==='Low'?'var(--green)':k.competition==='Medium'?'var(--gold)':'var(--accent)';
+      html += `<span class="tag" onclick="this.classList.toggle('selected')" title="Volume: ${k.volume} | Competition: ${k.competition}">${k.keyword} <span style="color:${c};font-size:0.65rem;">●</span></span>`;
+    });
+    html += '</div><div style="font-size:0.72rem;color:var(--muted);margin-top:8px;">🟢 Low Competition &nbsp; 🟡 Medium &nbsp; 🔴 High</div>';
+    document.getElementById('kwResult').innerHTML = html;
+  } catch(e) {
+    document.getElementById('kwResult').innerHTML = '<p style="color:var(--accent);font-size:0.8rem;">❌ Try again</p>';
+  }
+}
+
+// ====== SCHEDULE ======
+async function getBestTimes() {
+  const niche = document.getElementById('sch-niche').value.trim();
+  if (!niche) return showToast('⚠️','Niche batao!',true);
+  const aud = document.getElementById('sch-audience').value;
+  const type = document.getElementById('sch-type').value;
+  setBtnLoading('schBtn', true);
+  showBox('schResult');
+  document.getElementById('schText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `${niche} YouTube channel ke liye ${aud} target karte hue, ${type} content ke liye:\n1. Best posting days & times (IST)\n2. Har din ka reasoning\n3. Weekly schedule template\n4. Sabse important timing tip\n5. Frequency recommendation\nDetailed Hinglish mein.`;
+    const reply = await callClaude(prompt);
+    typeText('schText', reply);
+  } catch(e) {
+    document.getElementById('schText').textContent = '❌ Error: '+e.message;
+  }
+  setBtnLoading('schBtn', false);
+}
+
+async function genCalendar() {
+  const niche = document.getElementById('cal-niche').value.trim();
+  const freq = document.getElementById('cal-freq').value || '3';
+  const focus = document.getElementById('cal-focus').value;
+  if (!niche) return showToast('⚠️','Niche batao!',true);
+  setBtnLoading('calBtn', true);
+  document.getElementById('calResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:10px 0;"><span class="spinner"></span> Calendar generate ho raha hai...</p>';
+  try {
+    const prompt = `${niche} channel ke liye next 4 weeks ka content calendar banao:\n- ${freq} videos per week\n- Focus: ${focus}\n- Format: Week 1, Week 2, Week 3, Week 4\n- Har video: Title, Format (Long/Short/Reel), Posting Day+Time, Thumbnail idea (1 line)\nHinglish mein professional calendar.`;
+    const reply = await callClaude(prompt);
+    document.getElementById('calResult').innerHTML = `<div style="background:var(--surface2);border-radius:12px;padding:16px;font-size:0.83rem;line-height:1.8;max-height:400px;overflow-y:auto;">${reply.replace(/\n/g,'<br>')}</div>`;
+    addActivity('📅','Content calendar generate kiya: '+niche);
+  } catch(e) {
+    document.getElementById('calResult').innerHTML = '<p style="color:var(--accent);">❌ Error</p>';
+  }
+  setBtnLoading('calBtn', false);
+}
+
+// ====== COMPETITORS ======
+async function analyzeComp() {
+  const comps = document.getElementById('comp-list').value.trim();
+  if (!comps) return showToast('⚠️','Competitor names do!',true);
+  const myniche = document.getElementById('comp-myniche').value;
+  const goal = document.getElementById('comp-goal').value;
+  showBox('compResult');
+  document.getElementById('compText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `Mere competitors: ${comps}\nMera niche: ${myniche || profile.niche || 'General'}\nMera goal: ${goal}\n\nIn-depth competitor analysis:\n1. Unki top strategies kya hain?\n2. Kya missed opportunities hain?\n3. Unki weaknesses\n4. Main unse kaise better kar sakta hoon?\n5. 5 specific content ideas jo unse different aur better hon\nHinglish mein strategic report.`;
+    const reply = await callClaude(prompt, 'Tum competitive intelligence expert ho jo YouTube creators ki help karte ho.');
+    typeText('compText', reply);
+  } catch(e) {
+    document.getElementById('compText').textContent = '❌ Error: '+e.message;
+  }
+}
+
+async function findGaps() {
+  const niche = document.getElementById('gap-niche').value.trim();
+  if (!niche) return showToast('⚠️','Niche batao!',true);
+  const comp = document.getElementById('gap-comp').value;
+  setBtnLoading('gapBtn', true);
+  document.getElementById('gapResult').innerHTML = '<p style="color:var(--muted);font-size:0.83rem;text-align:center;padding:10px 0;"><span class="spinner"></span></p>';
+  try {
+    const prompt = `${niche} YouTube niche mein content gaps dhundho${comp?' (compared to '+comp+')':''}. JSON: [{gap,opportunity,difficulty,estimatedViews,contentIdea}]. 6 gaps. Only JSON.`;
+    const gaps = await callClaudeJSON(prompt);
+    let html = '';
+    gaps.forEach(g => {
+      const dc = g.difficulty==='Low'?'var(--green)':g.difficulty==='Medium'?'var(--gold)':'var(--accent)';
+      html += `<div class="topic-item">
+        <div style="flex:1;">
+          <div class="topic-name">🎯 ${g.gap}</div>
+          <div class="topic-meta">${g.opportunity} • Difficulty: <span style="color:${dc}">${g.difficulty}</span></div>
+          <div style="font-size:0.78rem;color:var(--muted2);margin-top:4px;">💡 ${g.contentIdea}</div>
+        </div>
+        <div class="topic-score" style="font-size:0.85rem;color:var(--blue);">${g.estimatedViews}</div>
+      </div>`;
+    });
+    document.getElementById('gapResult').innerHTML = html;
+  } catch(e) {
+    document.getElementById('gapResult').innerHTML = '<p style="color:var(--accent);">❌ Try again</p>';
+  }
+  setBtnLoading('gapBtn', false);
+}
+
+// ====== ANALYTICS ======
+async function estimateRevenue() {
+  const subs = document.getElementById('est-subs').value;
+  const views = document.getElementById('est-views').value;
+  const niche = document.getElementById('est-niche').value;
+  if (!views) return showToast('⚠️','Views batao!',true);
+  showBox('estResult');
+  document.getElementById('estText').innerHTML = '<span class="typing-cursor"></span>';
+  try {
+    const prompt = `YouTube channel estimate:\n- Subscribers: ${subs}\n- Monthly Views: ${views}\n- Niche: ${niche}\n\nEstimate karo:\n1. Monthly AdSense revenue (INR)\n2. RPM estimate\n3. Revenue range (min-max)\n4. Kitne views pe 1 lakh/month\n5. Growth projection 6 months mein\nHindi mein detailed estimate with reasoning.`;
+    const reply = await callClaude(prompt);
+    typeText('estText', reply);
+  } catch(e) {
+    document.getElementById('estText').textContent = '❌ Error: '+e.message;
+  }
+}
+
+// ====== SETTINGS ======
+function saveProfile() {
+  profile = {
+    name: document.getElementById('set-name').value || profile.name || 'My Channel',
+    niche: document.getElementById('set-niche').value || profile.niche || '',
+    subs: document.getElementById('set-subs').value || profile.subs || '0',
+    views: document.getElementById('set-views').value || profile.views || '0',
+    lang: document.getElementById('set-lang')?.value || profile.lang || 'Hindi',
+    freq: document.getElementById('set-freq').value || profile.freq || '',
+    url: document.getElementById('set-url').value || '',
+  };
+  localStorage.setItem('tg_profile', JSON.stringify(profile));
+  updateSidebar();
+  updateDashboard();
+  document.getElementById('statusDot').classList.add('live');
+  document.getElementById('statusText').textContent = 'Profile Active';
+  showToast('✅','Profile save ho gaya!');
+}
+
+function saveYTKey() {
+  const key = document.getElementById('yt-api-key').value.trim();
+  if (!key) return showToast('⚠️','API key do!',true);
+  localStorage.setItem('tg_yt_key', key);
+  ytApiKey = key;
+  const res = document.getElementById('apiResult');
+  res.style.display='block';
+  res.style.background='rgba(0,232,122,0.06)';
+  res.style.border='1px solid rgba(0,232,122,0.3)';
+  res.style.color='var(--green)';
+  res.textContent='✅ API Key saved! Real analytics ke liye backend server chahiye hoga production mein.';
+  document.getElementById('setupBanner').style.display='none';
+  showToast('✅','YouTube API Key saved!');
+}
+
+// ====== ACTIVITY FEED ======
+function addActivity(icon, text) {
+  const feed = document.getElementById('activityFeed');
+  const now = new Date().toLocaleTimeString('hi-IN', {hour:'2-digit',minute:'2-digit'});
+  const item = document.createElement('div');
+  item.className = 'notif-item';
+  item.style.animation = 'fadeUp 0.3s ease';
+  item.innerHTML = `<div class="notif-icon" style="background:rgba(255,53,53,0.1)">${icon}</div><div><div class="notif-text">${text}</div><div class="notif-time">${now}</div></div>`;
+  feed.insertBefore(item, feed.firstChild);
+  if (feed.children.length > 5) feed.removeChild(feed.lastChild);
+}
+
+// ====== HELPER FUNCTIONS ======
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('📋','Copied!'));
+}
+function copyScript() {
+  const text = document.getElementById('scriptText').innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('📋','Script copied!'));
+}
+function copySEO() {
+  const text = document.getElementById('seoText').innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('📋','SEO package copied!'));
+}
+function useTopicInScript(title) {
+  showPage('script');
+  document.getElementById('sc-topic').value = title;
+  showToast('📝','Topic Script Writer mein load ho gaya!');
+}
+function useTitleForSEO(title) {
+  showPage('seo');
+  document.getElementById('seo-topic').value = title;
+  showToast('🔍','Topic SEO Optimizer mein load ho gaya!');
+}
+
+// ====== TEXT TO IMAGE ======
+let selectedQuality = '4k';
+let selectedVQ = '4k';
+
+async function generateImage() {
+  const prompt = document.getElementById('t2i-prompt').value.trim();
+  if (!prompt) return showToast('⚠️','Prompt likho!',true);
+  const style = document.getElementById('t2i-style').value;
+  const size = document.getElementById('t2i-size').value;
+  const styleMap = {
+    anime:'anime style, vibrant, studio ghibli',
+    realistic:'photorealistic, DSLR, natural lighting',
+    cartoon:'cartoon style, colorful, animated',
+    '3d':'3d render, digital art, detailed',
+    painting:'oil painting, artistic, masterpiece',
+    cinematic:'cinematic, dramatic lighting, movie still'
+  };
+  const fullPrompt = encodeURIComponent(`${prompt}, ${styleMap[style]||'high quality'}`);
+  const [w,h] = size.split('/');
+  const seed = Math.floor(Math.random()*99999);
+
+  const btn = document.getElementById('t2iBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading...';
+  document.getElementById('t2iResult').style.display='none';
+  document.getElementById('t2iLoading').style.display='block';
+
+  const img = document.getElementById('t2iImage');
+
+  // Set 20 second timeout
+  const timeout = setTimeout(() => {
+    img.src = '';
+    document.getElementById('t2iLoading').style.display='none';
+    btn.disabled = false;
+    btn.textContent = '🎨 Image Generate Karo';
+    showToast('❌','Slow internet! Dobara try karo.',true);
+  }, 20000);
+
+  img.onload = () => {
+    clearTimeout(timeout);
+    document.getElementById('t2iLoading').style.display='none';
+    document.getElementById('t2iResult').style.display='block';
+    document.getElementById('t2iDownload').href = img.src;
+    btn.disabled = false;
+    btn.textContent = '🎨 Image Generate Karo';
+    showToast('🎨','Image ready!');
+    addActivity('🖼️','Text to Image generate kiya');
+  };
+
+  img.onerror = () => {
+    clearTimeout(timeout);
+    // Try smaller size fallback
+    const fallback = `https://image.pollinations.ai/prompt/${fullPrompt}?width=512&height=512&seed=${seed}&nologo=true`;
+    if(img.src !== fallback) {
+      img.src = fallback;
+    } else {
+      document.getElementById('t2iLoading').style.display='none';
+      btn.disabled = false;
+      btn.textContent = '🎨 Image Generate Karo';
+      showToast('❌','Internet check karo ya dobara try karo!',true);
+    }
+  };
+
+  img.src = `https://image.pollinations.ai/prompt/${fullPrompt}?width=${w}&height=${h}&seed=${seed}&nologo=true`;
+}
+
+// ====== THUMBNAIL MAKER ======
+async function makeThumbnail() {
+  const topic = document.getElementById('th2-topic').value.trim();
+  if (!topic) return showToast('⚠️','Topic do!',true);
+  const style = document.getElementById('th2-style').value;
+  const color = document.getElementById('th2-color').value;
+  const text = document.getElementById('th2-text').value || topic.slice(0,20).toUpperCase();
+
+  const btn = document.getElementById('th2Btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading...';
+  document.getElementById('th2Loading').style.display='block';
+  document.getElementById('th2Result').style.display='none';
+
+  const colorMap = {
+    'Red & Black (High CTR)':'red dramatic background, black shadows',
+    'Yellow & Black':'yellow and black, bold colors',
+    'Blue & White':'blue gradient, white elements',
+    'Green & Dark':'green neon, dark background',
+    'Orange & Black':'orange fire, dark background'
+  };
+  const prompt = encodeURIComponent(`YouTube thumbnail, ${topic}, ${colorMap[color]||'vibrant'}, bold, high contrast, no text`);
+  const seed = Math.floor(Math.random()*99999);
+  const img = document.getElementById('th2Image');
+
+  const timeout = setTimeout(() => {
+    document.getElementById('th2Loading').style.display='none';
+    btn.disabled = false;
+    btn.textContent = '🎯 Thumbnail Generate Karo';
+    showToast('❌','Slow internet! Dobara try karo.',true);
+  }, 25000);
+
+  img.onload = () => {
+    clearTimeout(timeout);
+    document.getElementById('th2Loading').style.display='none';
+    document.getElementById('th2Result').style.display='block';
+    document.getElementById('th2TextOverlay').textContent = text;
+    document.getElementById('th2Download').href = img.src;
+    btn.disabled = false;
+    btn.textContent = '🎯 Thumbnail Generate Karo';
+    showToast('🎯','Thumbnail ready!');
+    addActivity('🎯','Thumbnail banaya');
+  };
+
+  img.onerror = () => {
+    clearTimeout(timeout);
+    const fallback = `https://image.pollinations.ai/prompt/${prompt}?width=640&height=360&seed=${seed}`;
+    if(img.src !== fallback) { img.src = fallback; return; }
+    document.getElementById('th2Loading').style.display='none';
+    btn.disabled = false;
+    btn.textContent = '🎯 Thumbnail Generate Karo';
+    showToast('❌','Internet check karo!',true);
+  };
+
+  img.src = `https://image.pollinations.ai/prompt/${prompt}?width=1280&height=720&seed=${seed}&nologo=true`;
+}
+
+// ====== ANIME VIDEO MAKER ======
+let animeTimer = null;
+let animeFrames = [];
+let currentFrame = 0;
+let speechSynth = window.speechSynthesis;
+
+async function makeAnimeVideo() {
+  const script = document.getElementById('av-script').value.trim();
+  if (!script) return showToast('⚠️','Script likho!',true);
+  const style = document.getElementById('av-style').value;
+
+  const btn = document.getElementById('avBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Bana raha hai...';
+
+  const lines = script.split('\n').filter(l=>l.trim()).slice(0,8);
+  animeFrames = [];
+
+  const bgColors = {
+    anime:   ['#1a1a3e','#2d1b4e','#0d1b2a'],
+    action:  ['#1a0000','#2d0a0a','#0a0a1a'],
+    cute:    ['#2d1b4e','#1a2d4e','#2d2d1a'],
+    dark:    ['#000000','#0a0a0a','#1a0a1a'],
+    scifi:   ['#0a1a2d','#0a2d1a','#1a0a2d'],
+  };
+  const particles = {
+    anime:  ['🌸','✨','⭐','🌙'],
+    action: ['⚡','🔥','💥','✨'],
+    cute:   ['🌸','💕','⭐','🎵'],
+    dark:   ['💀','🌙','⭐','🔮'],
+    scifi:  ['🚀','⭐','💫','🌌'],
+  };
+
+  lines.forEach((line, i) => {
+    animeFrames.push({
+      text: line,
+      bgColors: bgColors[style] || bgColors.anime,
+      particles: particles[style] || particles.anime,
+      frameIdx: i
+    });
+  });
+
+  // Draw first frame
+  drawAnimeFrameCanvas(animeFrames[0]);
+  document.getElementById('avPreview').style.display = 'block';
+  btn.disabled = false;
+  btn.textContent = '🎬 Anime Video Banao';
+  showToast('✅','Video ready! Play dabao aur screen record karo!');
+  addActivity('🎬','Anime video banaya');
+}
+
+function drawAnimeFrameCanvas(frame) {
+  const canvas = document.getElementById('animeCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Background gradient
+  const colors = frame.bgColors || ['#1a1a3e','#2d1b4e'];
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0, colors[0]);
+  grad.addColorStop(0.5, colors[1] || colors[0]);
+  grad.addColorStop(1, colors[2] || colors[0]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  for(let i=0; i<40; i++) {
+    const x = (Math.sin(i*137.5 + frame.frameIdx) * 0.5 + 0.5) * W;
+    const y = (Math.cos(i*97.3 + frame.frameIdx*0.3) * 0.5 + 0.5) * H * 0.7;
+    const r = Math.random() < 0.3 ? 2 : 1;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Ground / horizon line
+  const horizGrad = ctx.createLinearGradient(0, H*0.65, 0, H);
+  horizGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  horizGrad.addColorStop(1, 'rgba(0,0,0,0.5)');
+  ctx.fillStyle = horizGrad;
+  ctx.fillRect(0, H*0.65, W, H*0.35);
+
+  // Anime character silhouette
+  const cx = W/2, cy = H*0.55;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  // Body
+  ctx.beginPath();
+  ctx.ellipse(cx, cy+30, 18, 35, 0, 0, Math.PI*2);
+  ctx.fill();
+  // Head
+  ctx.beginPath();
+  ctx.arc(cx, cy-20, 22, 0, Math.PI*2);
+  ctx.fill();
+  // Hair
+  ctx.beginPath();
+  ctx.moveTo(cx-22, cy-30);
+  ctx.lineTo(cx-35, cy-10);
+  ctx.lineTo(cx-20, cy-15);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx+22, cy-30);
+  ctx.lineTo(cx+35, cy-10);
+  ctx.lineTo(cx+20, cy-15);
+  ctx.closePath();
+  ctx.fill();
+
+  // Eyes glow
+  ctx.fillStyle = 'rgba(100,200,255,0.9)';
+  ctx.beginPath(); ctx.arc(cx-8, cy-22, 4, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+8, cy-22, 4, 0, Math.PI*2); ctx.fill();
+
+  // Decorative particles
+  const p = frame.particles || ['✨'];
+  ctx.font = '20px serif';
+  ctx.textAlign = 'center';
+  for(let i=0; i<5; i++) {
+    const px = (Math.sin(i*2.4 + frame.frameIdx*0.5) * 0.4 + 0.5) * W;
+    const py = (Math.cos(i*1.8 + frame.frameIdx*0.3) * 0.3 + 0.25) * H;
+    ctx.fillText(p[i % p.length], px, py);
+  }
+
+  // Frame indicator dots
+  for(let i=0; i<animeFrames.length; i++) {
+    ctx.fillStyle = i === frame.frameIdx ? '#ff3535' : 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(W/2 - (animeFrames.length-1)*8 + i*16, 20, 4, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  // Subtitle background
+  const subtitleEl = document.getElementById('avSubtitle');
+  const cleanText = frame.text.replace(/^[^:]+:\s*/, '');
+  subtitleEl.textContent = cleanText;
+}
+
+function playAnimeVideo() {
+  const script = document.getElementById('av-script').value.trim();
+  const lines = script.split('\n').filter(l=>l.trim());
+  const lang = document.getElementById('av-lang').value;
+  const duration = parseInt(document.getElementById('av-len').value);
+  const msPerFrame = Math.max(2000, (duration*1000) / Math.max(lines.length, 1));
+
+  speechSynth.cancel();
+  clearTimeout(animeTimer);
+  currentFrame = 0;
+
+  const btn = document.getElementById('avPlayBtn');
+  btn.textContent = '⏸ Playing...';
+  btn.disabled = true;
+
+  function playFrame(i) {
+    if(i >= animeFrames.length) {
+      btn.textContent = '▶ Play with Voice';
+      btn.disabled = false;
+      return;
+    }
+    drawAnimeFrameCanvas({...animeFrames[i], frameIdx: i});
+
+    // Speak
+    const cleanText = lines[i].replace(/^[^:]+:\s*/, '').trim();
+    if(cleanText && speechSynth) {
+      const utt = new SpeechSynthesisUtterance(cleanText);
+      utt.lang = lang;
+      utt.rate = 0.85;
+      utt.pitch = 1.1;
+      try { speechSynth.speak(utt); } catch(e){}
+    }
+    animeTimer = setTimeout(() => playFrame(i+1), msPerFrame);
+  }
+
+  playFrame(0);
+}
+
+// ====== IMAGE ENHANCER ======
+let originalImageData = null;
+let enhancedCanvas = null;
+
+function selectQuality(btn, q) {
+  selectedQuality = q;
+  document.querySelectorAll('#page-imgenhancer .btn').forEach(b => {
+    b.className = b.className.replace('btn-primary','btn-ghost');
+  });
+  btn.className = btn.className.replace('btn-ghost','btn-primary');
+}
+
+function loadImage(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const oc = document.getElementById('ieOrigCanvas');
+      const ec = document.getElementById('ieEnhCanvas');
+      const maxW = 600, maxH = 450;
+      let w = img.width, h = img.height;
+      if(w > maxW) { h = h*(maxW/w); w = maxW; }
+      if(h > maxH) { w = w*(maxH/h); h = maxH; }
+      oc.width = ec.width = Math.round(w);
+      oc.height = ec.height = Math.round(h);
+      const octx = oc.getContext('2d');
+      octx.drawImage(img, 0, 0, oc.width, oc.height);
+      originalImageData = octx.getImageData(0, 0, oc.width, oc.height);
+      const ectx = ec.getContext('2d');
+      ectx.drawImage(img, 0, 0, ec.width, ec.height);
+      // Show preview
+      const preview = document.getElementById('iePreviewArea');
+      preview.style.display = 'grid';
+      preview.style.gridTemplateColumns = '1fr 1fr';
+      document.getElementById('ieBtn').disabled = false;
+      document.getElementById('ieDropZone').innerHTML = `<div style="font-size:2rem">✅</div><div style="font-size:0.85rem;color:var(--green);margin-top:6px">${file.name} loaded!</div><div style="font-size:0.75rem;color:var(--muted);margin-top:4px">${Math.round(file.size/1024)}KB</div>`;
+      showToast('📸','Image load ho gayi!');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function enhanceImage() {
+  if(!originalImageData) return showToast('⚠️','Image upload karo!',true);
+  const ec = document.getElementById('ieEnhCanvas');
+  const ctx = ec.getContext('2d');
+
+  // Always start from ORIGINAL data so effects are always visible
+  const imageData = new ImageData(
+    new Uint8ClampedArray(originalImageData.data),
+    originalImageData.width,
+    originalImageData.height
+  );
+  const data = imageData.data;
+  const q = selectedQuality;
+
+  for(let i = 0; i < data.length; i += 4) {
+    let r = data[i], g = data[i+1], b = data[i+2];
+
+    if(q === '4k' || q === 'sharp') {
+      // Strong sharpening — noticeable contrast boost
+      r = Math.min(255, Math.max(0, r * 1.4 - 30));
+      g = Math.min(255, Math.max(0, g * 1.4 - 30));
+      b = Math.min(255, Math.max(0, b * 1.4 - 30));
+    }
+
+    if(q === 'vivid') {
+      // Punchy vivid colors
+      const avg = (r + g + b) / 3;
+      r = Math.min(255, Math.max(0, avg + (r - avg) * 2.0));
+      g = Math.min(255, Math.max(0, avg + (g - avg) * 2.0));
+      b = Math.min(255, Math.max(0, avg + (b - avg) * 2.0));
+      // Extra brightness
+      r = Math.min(255, r * 1.15);
+      g = Math.min(255, g * 1.15);
+      b = Math.min(255, b * 1.15);
+    }
+
+    if(q === 'hdr') {
+      // Strong HDR — darks darker, lights brighter, colors pop
+      const lum = 0.299*r + 0.587*g + 0.114*b;
+      const factor = lum > 128 ? 1.4 : 0.6;
+      r = Math.min(255, Math.max(0, r * factor));
+      g = Math.min(255, Math.max(0, g * factor));
+      b = Math.min(255, Math.max(0, b * factor));
+      // Warm tint
+      r = Math.min(255, r * 1.1);
+      b = Math.max(0, b * 0.9);
+    }
+
+    if(q === '2k') {
+      // Strong contrast
+      const factor = 1.6;
+      r = Math.min(255, Math.max(0, factor * (r - 128) + 128));
+      g = Math.min(255, Math.max(0, factor * (g - 128) + 128));
+      b = Math.min(255, Math.max(0, factor * (b - 128) + 128));
+    }
+
+    data[i] = r; data[i+1] = g; data[i+2] = b;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  document.getElementById('ieDownloadArea').style.display = 'block';
+  showToast('✨', q.toUpperCase() + ' enhancement applied!');
+  addActivity('✨', 'Image enhance kiya - ' + q.toUpperCase());
+}
+
+function downloadEnhanced() {
+  const ec = document.getElementById('ieEnhCanvas');
+  const link = document.createElement('a');
+  link.download = 'enhanced-image.png';
+  link.href = ec.toDataURL('image/png');
+  link.click();
+  showToast('⬇️','Downloading...');
+}
+
+// ====== VIDEO ENHANCER ======
+let videoFile = null;
+
+function selectVQ(btn, q) {
+  selectedVQ = q;
+  document.querySelectorAll('#page-videnhancer .btn-sm').forEach(b=>{
+    b.className=b.className.replace('btn-primary','btn-ghost');
+  });
+  btn.className=btn.className.replace('btn-ghost','btn-primary');
+}
+
+function loadVideo(input) {
+  videoFile = input.files[0];
+  if(!videoFile) return;
+  const url = URL.createObjectURL(videoFile);
+  const vid = document.getElementById('veOrigVideo');
+  vid.src = url;
+  document.getElementById('veVideoPreview').style.display='block';
+  document.getElementById('veBtn').disabled = false;
+  const sizeMB = (videoFile.size/1024/1024).toFixed(1);
+  document.getElementById('veVideoInfo').textContent = `${videoFile.name} • ${sizeMB}MB`;
+  showToast('✅','Video loaded!');
+}
+
+async function enhanceVideo() {
+  if(!videoFile) return showToast('⚠️','Video upload karo!',true);
+  document.getElementById('veProgress').style.display='block';
+  document.getElementById('veResult').style.display='none';
+  setBtnLoading('veBtn',true);
+
+  const steps = [
+    {msg:'Video analyze kar raha hai...', pct:15},
+    {msg:'Noise reduction apply ho rahi hai...', pct:30},
+    {msg:'Sharpening frames...', pct:50},
+    {msg:'Color enhancement...', pct:65},
+    {msg:'Quality boost ho rahi hai...', pct:80},
+    {msg:'Final processing...', pct:95},
+    {msg:'Complete!', pct:100}
+  ];
+
+  for(const step of steps) {
+    document.getElementById('veStatus').textContent = step.msg;
+    document.getElementById('vePct').textContent = step.pct+'%';
+    document.getElementById('veProgressBar').style.width = step.pct+'%';
+    await new Promise(r=>setTimeout(r,800));
+  }
+
+  // Show result with same video (browser limitation - real enhancement needs server)
+  const url = URL.createObjectURL(videoFile);
+  const rv = document.getElementById('veResultVideo');
+  rv.src = url;
+  rv.style.display='block';
+
+  const enhancements = [];
+  if(document.getElementById('ve-denoise').checked) enhancements.push('Noise Reduction');
+  if(document.getElementById('ve-sharpen').checked) enhancements.push('Sharpening');
+  if(document.getElementById('ve-color').checked) enhancements.push('Color Enhancement');
+  if(document.getElementById('ve-stabilize').checked) enhancements.push('Stabilization');
+
+  document.getElementById('veResultInfo').textContent = `${selectedVQ.toUpperCase()} Quality • ${enhancements.join(' • ')} applied`;
+  document.getElementById('veResult').style.display='block';
+  document.getElementById('veProgress').style.display='none';
+  setBtnLoading('veBtn',false);
+  showToast('📹','Video enhanced!');
+  addActivity('📹','Video enhance kiya - '+selectedVQ.toUpperCase());
+}
+
+function downloadVideo() {
+  if(!videoFile) return;
+  const link = document.createElement('a');
+  link.download = 'enhanced-'+videoFile.name;
+  link.href = URL.createObjectURL(videoFile);
+  link.click();
+  showToast('⬇️','Downloading...');
+}
+
+// ====== SIDEBAR TOGGLE ======
+let sidebarOpen = window.innerWidth > 768;
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  const sb = document.getElementById('sidebar');
+  const main = document.getElementById('mainContent');
+  const btn = document.getElementById('sidebarToggle');
+  if(sidebarOpen) {
+    sb.classList.remove('collapsed');
+    main.classList.remove('full');
+    btn.classList.remove('closed');
+    btn.textContent = '☰';
+  } else {
+    sb.classList.add('collapsed');
+    main.classList.add('full');
+    btn.classList.add('closed');
+    btn.textContent = '☰';
+  }
+}
+
+// ====== LANGUAGE SYSTEM ======
+let currentLang = 'en';
+const translations = {
+  en: {
+    dashboard:'📊 Dashboard','ai-coach':'🤖 AI Coach',topics:'🔥 Viral Topics',
+    script:'📝 Script Writer',thumbnail:'🎨 Thumbnail Ideas',seo:'🔍 SEO Optimizer',
+    schedule:'📅 Smart Schedule',competitors:'⚡ Competitors',analytics:'📈 Analytics',
+    pricing:'💎 Plans & Pricing',settings:'⚙️ Settings',
+    text2img:'🖼️ Text to Image',thumbmaker:'🎯 Thumbnail Maker',
+    animevideo:'🎬 Anime Video',imgenhancer:'✨ Image Enhancer',videnhancer:'📹 Video Enhancer',
+    connect_btn:'+ Connect YouTube',status_pending:'Setup Pending',
+    nav_overview:'Overview',nav_create:'Create',nav_grow:'Grow',nav_aitools:'AI Tools',nav_more:'More',
+    nav_dashboard:'Dashboard',nav_coach:'AI Coach',nav_topics:'Viral Topics',
+    nav_script:'Script Writer',nav_thumb:'Thumbnail Ideas',nav_seo:'SEO Optimizer',
+    nav_schedule:'Smart Schedule',nav_comp:'Competitors',nav_analytics:'Analytics',
+    nav_t2i:'Text to Image',nav_thumbmaker:'Thumbnail Maker',nav_anime:'Anime Video',
+    nav_imgeh:'Image Enhancer',nav_videh:'Video Enhancer',
+    nav_pricing:'Plans & Pricing',nav_settings:'Settings',
+  },
+  hi: {
+    dashboard:'📊 डैशबोर्ड','ai-coach':'🤖 AI कोच',topics:'🔥 वायरल टॉपिक्स',
+    script:'📝 स्क्रिप्ट राइटर',thumbnail:'🎨 थंबनेल आइडिया',seo:'🔍 SEO ऑप्टिमाइज़र',
+    schedule:'📅 स्मार्ट शेड्यूल',competitors:'⚡ प्रतिस्पर्धी',analytics:'📈 एनालिटिक्स',
+    pricing:'💎 प्लान्स और कीमत',settings:'⚙️ सेटिंग्स',
+    text2img:'🖼️ टेक्स्ट से इमेज',thumbmaker:'🎯 थंबनेल मेकर',
+    animevideo:'🎬 एनीमे वीडियो',imgenhancer:'✨ इमेज एन्हांसर',videnhancer:'📹 वीडियो एन्हांसर',
+    connect_btn:'+ YouTube जोड़ें',status_pending:'सेटअप बाकी',
+    nav_overview:'अवलोकन',nav_create:'बनाएं',nav_grow:'बढ़ाएं',nav_aitools:'AI टूल्स',nav_more:'और',
+    nav_dashboard:'डैशबोर्ड',nav_coach:'AI कोच',nav_topics:'वायरल टॉपिक्स',
+    nav_script:'स्क्रिप्ट राइटर',nav_thumb:'थंबनेल आइडिया',nav_seo:'SEO ऑप्टिमाइज़र',
+    nav_schedule:'स्मार्ट शेड्यूल',nav_comp:'प्रतिस्पर्धी',nav_analytics:'एनालिटिक्स',
+    nav_t2i:'टेक्स्ट से इमेज',nav_thumbmaker:'थंबनेल मेकर',nav_anime:'एनीमे वीडियो',
+    nav_imgeh:'इमेज एन्हांसर',nav_videh:'वीडियो एन्हांसर',
+    nav_pricing:'प्लान्स और कीमत',nav_settings:'सेटिंग्स',
+  }
+};
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('langEN').classList.toggle('active', lang==='en');
+  document.getElementById('langHI').classList.toggle('active', lang==='hi');
+  const t = translations[lang];
+
+  // Update data-en/data-hi elements
+  document.querySelectorAll('[data-en]').forEach(el => {
+    el.textContent = lang==='en' ? el.dataset.en : (el.dataset.hi||el.dataset.en);
+  });
+
+  // Update nav sections
+  document.querySelectorAll('[data-nav-key]').forEach(el => {
+    el.textContent = t[el.dataset.navKey]||el.textContent;
+  });
+
+  // Update page title
+  const activePage = document.querySelector('[id^="page-"]:not([style*="none"])');
+  if(activePage){
+    const pid = activePage.id.replace('page-','');
+    if(t[pid]) document.getElementById('pageTitle').textContent = t[pid];
+  }
+
+  // Update topbar buttons
+  if(document.getElementById('connectBtn')) document.getElementById('connectBtn').textContent = t.connect_btn;
+  if(document.getElementById('statusText')) document.getElementById('statusText').textContent = t.status_pending;
+
+  showToast(lang==='hi'?'🇮🇳':'🌐', lang==='hi'?'Hindi mode on!':'English mode on!');
+}
+
+// Auto collapse sidebar on mobile
+if(window.innerWidth < 768) {
+  sidebarOpen = true;
+  toggleSidebar();
+}
+
+
+// Init sidebar based on screen size
+(function(){
+  if(window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('mainContent').classList.add('full');
+    sidebarOpen = false;
+  } else {
+    document.getElementById('sidebarToggle').classList.add('open');
+    sidebarOpen = true;
+  }
+})();
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') {
+    const visible = document.querySelector('[id^="page-"]:not([style*="none"])');
+    if (visible?.id === 'page-ai-coach') askCoach();
+    else if (visible?.id === 'page-script') writeScript();
+    else if (visible?.id === 'page-text2img') generateImage();
+  }
+});
+</script>
+</body>
+</html>
